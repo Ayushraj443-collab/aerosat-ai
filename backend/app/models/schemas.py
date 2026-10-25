@@ -241,3 +241,13 @@ class RealDataIngestionResponse(BaseModel):
     pollutants: List[str]
     date_range: Dict[str, str]
     message: str
+
+class CopernicusAuthTestResponse(BaseModel):
+    credentials_configured: bool
+    token_request: str
+    auth_provider: str
+    http_status: Optional[int] = None
+    error_category: Optional[str] = None
+    timestamp: str
+    details: str
+

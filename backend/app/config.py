@@ -26,6 +26,7 @@ class Settings(BaseSettings):
     # External API Keys (Optional - Demo mode activated if empty)
     COPERNICUS_CLIENT_ID: str = ""
     COPERNICUS_CLIENT_SECRET: str = ""
+    COPERNICUS_AUTH_PROVIDER: str = "auto" # 'auto', 'sentinel_hub', 'cdse_sentinel_hub', 'cdse_keycloak'
     OPENAQ_API_KEY: str = ""
     
     # CORS
@@ -106,7 +107,7 @@ class Settings(BaseSettings):
     }
 
     class Config:
-        env_file = ".env"
+        env_file = [str(BACKEND_DIR / ".env"), str(BASE_DIR / ".env"), ".env"]
         extra = "ignore"
 
 settings = Settings()

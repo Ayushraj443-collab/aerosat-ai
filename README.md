@@ -115,17 +115,20 @@ npm run dev
 
 ## 5. Automated Testing & Real Data Verification
 
-The backend includes a comprehensive automated test suite testing health, connectors, spatial feature extraction, GroupKFold validation, downscaling uncertainty bounds, live connector requests, and data isolation.
+The backend includes a comprehensive automated test suite testing health, connectors, spatial feature extraction, GroupKFold validation, downscaling uncertainty bounds, live connector requests, authentication diagnostics, and data isolation.
 
 ```bash
-# Run backend tests
+# Run all backend tests (31/31 passing)
 & .\backend\venv\Scripts\pytest.exe .\backend\tests -v
+
+# Run Copernicus OAuth Authentication Diagnostic CLI
+& .\backend\venv\Scripts\python.exe -m app.data.test_auth
 ```
 
-**Test Suite Coverage (26/26 Tests Passing):**
+**Test Suite Coverage (31/31 Tests Passing):**
 - `test_health.py`: Root health, database connectivity, real vs demo record counts
 - `test_data_api.py`: Data source registry, CPCB station queries, paired observations
-- `test_real_connectors.py`: Live Copernicus CDSE OData catalogue discovery, download blocker with setup guide, Open-Meteo ERA5 & BLH, Copernicus CAMS surface air quality, OpenAQ key check, CPCB CSV validation
+- `test_real_connectors.py`: Live Copernicus CDSE OData catalogue discovery, download blocker with setup guide, Open-Meteo ERA5 & BLH, Copernicus CAMS surface air quality, OpenAQ key check, Copernicus OAuth manager diagnostics (mock & unconfigured), Sentinel-5P pixel observation retrieval, CPCB CAAQMS CSV importer, and sample Delhi dataset ingestion
 - `test_data_isolation.py`: Database partition isolation, API mode filtering (`?mode=real|demo`), prediction mode provenance, untrained pollutant error handling (no fake data), downscaled grid metadata, CSV/GeoJSON exports
 - `test_downscaler.py`: Haversine distance, single-location downscaling with uncertainty bounds, GeoJSON polygon grid generator
 - `test_ml_pipeline.py`: GroupKFold cross-validation by station, baseline IDW comparison, feature importances
@@ -142,7 +145,7 @@ The backend includes a comprehensive automated test suite testing health, connec
 | **B. Interactive Map** | Pan/zoom Leaflet map with CartoDB dark tiles, 1-5 km downscaled polygon grids, station pins with AQI popup badges, uncertainty layer toggle, and missing-data cloud mask. |
 | **C. Prediction Workspace** | Coordinate input with regional monitored presets, target resolution selection, model algorithm chooser, 90% confidence uncertainty intervals, and input provenance logging. |
 | **D. Model Evaluation** | Out-of-fold $R^2$, MAE, RMSE, Mean Bias Error (MBE), baseline IDW comparison (+% accuracy gain), observed vs predicted scatter plot, residual error histogram, and on-demand retraining. |
-| **E. Data Explorer** | Dual Real / Demo mode observation browser, Live ESA CDSE Sentinel-5P Granule Explorer, CPCB CAAQMS CSV importer, and dataset validation engine. |
+| **E. Data Explorer** | Dual Real / Demo mode observation browser, Copernicus OAuth Authentication Diagnostic card, Live ESA CDSE Sentinel-5P Granule Explorer, Sentinel-5P Pixel Sampler, CPCB CAAQMS CSV importer, and dataset validation engine. |
 | **F. Research & About** | Physics of planetary boundary layer trapping, mathematical column-to-surface relationship, spatial cross-validation rationale, and academic citations. |
 
 ---
@@ -154,11 +157,14 @@ The application features two strictly separated operating modes: **REAL DATA** a
 - **Demo Mode:** Runs deterministic physical simulations for offline demonstrations and academic testing.
 
 ### Enabling Authenticated Connectors:
-1. **Copernicus CDSE Sentinel-5P Binary Download:**
+1. **Copernicus Sentinel Hub / CDSE OAuth Credentials:**
    - OData catalogue search works **publicly without credentials**.
-   - For downloading full NetCDF files, register at [dataspace.copernicus.eu](https://dataspace.copernicus.eu), generate OAuth2 credentials in your user profile, and add `COPERNICUS_CLIENT_ID` and `COPERNICUS_CLIENT_SECRET` in `backend/.env`.
+   - To sample Sentinel-5P TROPOMI pixels and download granules, add `COPERNICUS_CLIENT_ID` and `COPERNICUS_CLIENT_SECRET` in `backend/.env`.
+   - Run `python -m app.data.test_auth` or use the web dashboard diagnostic to verify.
+   - For detailed step-by-step setup instructions, see [`docs/REAL_DATA_SETUP.md`](docs/REAL_DATA_SETUP.md).
 2. **CPCB Ground Data:**
    - Download official station reports directly from the Central Pollution Control Board CCR portal: [app.cpcbccr.com/ccr](https://app.cpcbccr.com/ccr/).
+   - Or test with the pre-configured official reference dataset: `data/raw/cpcb_caaqms_sample_delhi.csv`.
    - Import the CSV in the **Data Explorer** tab. The system validates headers, coordinates, and physical bounds and ingests them with `data_mode='REAL'`.
 3. **OpenAQ v3 API:**
    - Register for a free community API key at [openaq.org](https://openaq.org) and add `OPENAQ_API_KEY` in `backend/.env`.
@@ -167,6 +173,7 @@ The application features two strictly separated operating modes: **REAL DATA** a
 
 ## 8. Documentation Index
 
+- [Real Data Setup & Verification Guide](docs/REAL_DATA_SETUP.md)
 - [Real Data Audit & Verification Report](docs/REAL_DATA_AUDIT.md)
 - [Real Data Implementation Plan](docs/REAL_DATA_IMPLEMENTATION_PLAN.md)
 - [Full University Project Report](docs/PROJECT_REPORT.md)

@@ -12,7 +12,10 @@ import {
   Search,
   ExternalLink,
   ShieldCheck,
-  Zap
+  Zap,
+  Key,
+  Lock,
+  Globe
 } from 'lucide-react';
 import { api } from '../services/api';
 import type {
@@ -21,6 +24,7 @@ import type {
   UploadValidationResponse,
   ConnectorStatusItem,
   Sentinel5PProductItem,
+  CopernicusAuthTestResponse,
   DataMode
 } from '../services/types';
 
@@ -39,6 +43,18 @@ export const DataExplorerPage: React.FC<DataExplorerPageProps> = ({ dataMode, on
   // Filter states
   const [obsPollutant, setObsPollutant] = useState<string>('NO2');
   const [obsLimit, setObsLimit] = useState<number>(50);
+
+  // Copernicus OAuth Diagnostic State
+  const [authDiag, setAuthDiag] = useState<CopernicusAuthTestResponse | null>(null);
+  const [testingAuth, setTestingAuth] = useState<boolean>(false);
+
+  // Sentinel-5P Pixel Sampling State
+  const [pixelLat, setPixelLat] = useState<number>(28.6476);
+  const [pixelLon, setPixelLon] = useState<number>(77.3158);
+  const [pixelDate, setPixelDate] = useState<string>('2024-01-05');
+  const [pixelPollutant, setPixelPollutant] = useState<string>('NO2');
+  const [samplingPixel, setSamplingPixel] = useState<boolean>(false);
+  const [pixelResult, setPixelResult] = useState<any>(null);
 
   // Sentinel-5P live query state
   const [cdsePollutant, setCdsePollutant] = useState<string>('NO2');
@@ -172,6 +188,46 @@ export const DataExplorerPage: React.FC<DataExplorerPageProps> = ({ dataMode, on
       setUploadError(err.message || 'File upload failed');
     } finally {
       setUploading(false);
+    }
+  }
+
+  async function handleTestAuth() {
+    setTestingAuth(true);
+    try {
+      const res = await api.testCopernicusAuth();
+      setAuthDiag(res);
+      loadConnectors();
+    } catch (err: any) {
+      setAuthDiag({
+        credentials_configured: false,
+        token_request: 'FAILURE',
+        auth_provider: 'auto',
+        http_status: null,
+        error_category: 'NETWORK_ERROR',
+        timestamp: new Date().toISOString(),
+        details: err.message || 'Diagnostic request failed'
+      });
+    } finally {
+      setTestingAuth(false);
+    }
+  }
+
+  async function handleSamplePixel(e: React.FormEvent) {
+    e.preventDefault();
+    setSamplingPixel(true);
+    setPixelResult(null);
+    try {
+      const res = await api.fetchSentinel5PObservation({
+        latitude: pixelLat,
+        longitude: pixelLon,
+        date: pixelDate,
+        pollutant: pixelPollutant
+      });
+      setPixelResult(res);
+    } catch (err: any) {
+      setPixelResult({ status: 'ERROR', message: err.message || 'Failed to query pixel' });
+    } finally {
+      setSamplingPixel(false);
     }
   }
 
@@ -484,6 +540,215 @@ export const DataExplorerPage: React.FC<DataExplorerPageProps> = ({ dataMode, on
             })}
           </div>
 
+          {/* Copernicus Authentication & Diagnostic Card */}
+          <div className="bg-navy-900/90 border border-slate-800 rounded-2xl p-6 space-y-5 shadow-2xl">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-800 pb-4">
+              <div>
+                <h3 className="text-sm font-bold text-white uppercase tracking-wider flex items-center gap-2">
+                  <Key className="w-4 h-4 text-cyan-400" />
+                  <span>Copernicus Sentinel Hub / CDSE OAuth Authentication</span>
+                </h3>
+                <p className="text-xs text-slate-400 mt-0.5">
+                  Secure backend-only client credentials authentication for real Sentinel-5P TROPOMI data access. Secrets are never exposed.
+                </p>
+              </div>
+
+              <button
+                onClick={handleTestAuth}
+                disabled={testingAuth}
+                className="px-4 py-2 rounded-xl bg-cyan-500 hover:bg-cyan-400 text-slate-950 font-bold text-xs uppercase tracking-wider transition-all disabled:opacity-50 flex items-center gap-2 flex-shrink-0"
+              >
+                {testingAuth ? <RefreshCw className="w-3.5 h-3.5 animate-spin" /> : <ShieldCheck className="w-3.5 h-3.5" />}
+                <span>{testingAuth ? 'Testing OAuth...' : 'Test Copernicus Auth'}</span>
+              </button>
+            </div>
+
+            {authDiag ? (
+              <div className="grid grid-cols-1 md:grid-cols-4 gap-3 font-mono text-xs">
+                <div className="p-3 rounded-xl bg-slate-950/80 border border-slate-800 space-y-1">
+                  <span className="text-[10px] text-slate-400 block uppercase">Credentials In .env</span>
+                  <span className={`font-bold px-2 py-0.5 rounded text-[11px] inline-block ${
+                    authDiag.credentials_configured ? 'bg-emerald-950/80 text-emerald-400 border border-emerald-800' : 'bg-amber-950/80 text-amber-400 border border-amber-800'
+                  }`}>
+                    {authDiag.credentials_configured ? 'CONFIGURED' : 'NOT CONFIGURED'}
+                  </span>
+                </div>
+
+                <div className="p-3 rounded-xl bg-slate-950/80 border border-slate-800 space-y-1">
+                  <span className="text-[10px] text-slate-400 block uppercase">OAuth Token Request</span>
+                  <span className={`font-bold px-2 py-0.5 rounded text-[11px] inline-block ${
+                    authDiag.token_request === 'SUCCESS' ? 'bg-emerald-950/80 text-emerald-400 border border-emerald-800' : authDiag.token_request === 'NOT_CONFIGURED' ? 'bg-slate-800 text-slate-300' : 'bg-rose-950/80 text-rose-400 border border-rose-800'
+                  }`}>
+                    {authDiag.token_request}
+                  </span>
+                </div>
+
+                <div className="p-3 rounded-xl bg-slate-950/80 border border-slate-800 space-y-1">
+                  <span className="text-[10px] text-slate-400 block uppercase">HTTP Status / Error</span>
+                  <span className="font-bold text-slate-200">
+                    {authDiag.http_status ? `HTTP ${authDiag.http_status}` : '—'}{' '}
+                    {authDiag.error_category && <span className="text-rose-400 text-[10px]">({authDiag.error_category})</span>}
+                  </span>
+                </div>
+
+                <div className="p-3 rounded-xl bg-slate-950/80 border border-slate-800 space-y-1">
+                  <span className="text-[10px] text-slate-400 block uppercase">Auth Provider</span>
+                  <span className="text-cyan-400 font-bold truncate block">{authDiag.auth_provider}</span>
+                </div>
+
+                <div className="md:col-span-4 p-3 rounded-xl bg-slate-950 border border-slate-800/80 text-xs text-slate-300 flex items-start gap-2">
+                  <Lock className="w-4 h-4 text-cyan-400 flex-shrink-0 mt-0.5" />
+                  <div className="space-y-1">
+                    <p className="font-sans">{authDiag.details}</p>
+                    <span className="text-[10px] text-slate-500 font-mono">Diagnostic Timestamp: {authDiag.timestamp}</span>
+                  </div>
+                </div>
+              </div>
+            ) : (
+              <div className="p-4 rounded-xl bg-slate-950/50 border border-slate-800/60 flex items-center justify-between text-xs text-slate-400">
+                <div className="flex items-center gap-2">
+                  <Key className="w-4 h-4 text-slate-500" />
+                  <span>Click <strong>Test Copernicus Auth</strong> to probe Copernicus Sentinel Hub OAuth endpoints live.</span>
+                </div>
+                <span className="text-[10px] font-mono text-slate-500">Safe Test — Never Logs Secrets</span>
+              </div>
+            )}
+
+            {/* Beginner-friendly local credentials setup guide */}
+            <div className="p-4 rounded-xl bg-slate-950/60 border border-slate-800/80 space-y-2 text-xs">
+              <span className="text-xs font-bold text-slate-200 uppercase tracking-wider flex items-center gap-1.5 font-mono">
+                <Lock className="w-3.5 h-3.5 text-cyan-400" />
+                <span>How to configure your Copernicus credentials locally</span>
+              </span>
+              <p className="text-slate-400 text-[11px] leading-relaxed">
+                Open <code className="text-cyan-300 bg-slate-900 px-1 py-0.5 rounded font-mono">backend/.env</code> in your local editor and paste your Sentinel Hub OAuth client credentials:
+              </p>
+              <pre className="bg-slate-950 p-2.5 rounded-lg border border-slate-800/80 text-[11px] font-mono text-cyan-400 overflow-x-auto">
+{`COPERNICUS_CLIENT_ID="<your-oauth-client-id>"
+COPERNICUS_CLIENT_SECRET="<your-oauth-client-secret>"
+COPERNICUS_AUTH_PROVIDER="auto"`}
+              </pre>
+              <p className="text-[10px] text-slate-500 font-mono">
+                * Note: <code className="text-slate-400">backend/.env</code> is ignored by Git and never committed or exposed to the browser.
+              </p>
+            </div>
+          </div>
+
+          {/* Real Sentinel-5P Pixel Sampler */}
+          <div className="bg-navy-900/80 border border-slate-800 rounded-2xl p-6 space-y-4 shadow-xl">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-slate-800 pb-3">
+              <div>
+                <h3 className="text-sm font-bold text-white uppercase tracking-wider flex items-center gap-2">
+                  <Globe className="w-4 h-4 text-cyan-400" />
+                  <span>Sentinel-5P / TROPOMI Pixel Sampler</span>
+                </h3>
+                <p className="text-xs text-slate-400 mt-0.5">
+                  Directly retrieve real tropospheric column observations for coordinates and dates via authenticated Sentinel Hub Statistical API.
+                </p>
+              </div>
+              <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-cyan-950/80 text-cyan-400 border border-cyan-800">
+                L2 Pixel Sampling
+              </span>
+            </div>
+
+            <form onSubmit={handleSamplePixel} className="grid grid-cols-1 sm:grid-cols-5 gap-3 text-xs">
+              <div>
+                <label className="block text-slate-400 mb-1">Latitude</label>
+                <input
+                  type="number"
+                  step="0.0001"
+                  value={pixelLat}
+                  onChange={(e) => setPixelLat(parseFloat(e.target.value))}
+                  className="w-full bg-slate-950 border border-slate-800 rounded px-2.5 py-1 text-slate-200 font-mono"
+                />
+              </div>
+
+              <div>
+                <label className="block text-slate-400 mb-1">Longitude</label>
+                <input
+                  type="number"
+                  step="0.0001"
+                  value={pixelLon}
+                  onChange={(e) => setPixelLon(parseFloat(e.target.value))}
+                  className="w-full bg-slate-950 border border-slate-800 rounded px-2.5 py-1 text-slate-200 font-mono"
+                />
+              </div>
+
+              <div>
+                <label className="block text-slate-400 mb-1">Observation Date</label>
+                <input
+                  type="date"
+                  value={pixelDate}
+                  onChange={(e) => setPixelDate(e.target.value)}
+                  className="w-full bg-slate-950 border border-slate-800 rounded px-2.5 py-1 text-slate-200 font-mono"
+                />
+              </div>
+
+              <div>
+                <label className="block text-slate-400 mb-1">Pollutant</label>
+                <select
+                  value={pixelPollutant}
+                  onChange={(e) => setPixelPollutant(e.target.value)}
+                  className="w-full bg-slate-950 border border-slate-800 rounded px-2.5 py-1 text-slate-200 font-mono"
+                >
+                  <option value="NO2">NO2 (Tropospheric Column)</option>
+                  <option value="PM2.5">Aerosol Index (PM2.5 Proxy)</option>
+                </select>
+              </div>
+
+              <div className="flex items-end">
+                <button
+                  type="submit"
+                  disabled={samplingPixel}
+                  className="w-full py-1.5 rounded-lg bg-cyan-500 hover:bg-cyan-400 text-slate-950 font-bold text-xs uppercase tracking-wider transition-all disabled:opacity-50 flex items-center justify-center gap-1.5"
+                >
+                  {samplingPixel ? <RefreshCw className="w-3.5 h-3.5 animate-spin" /> : <Globe className="w-3.5 h-3.5" />}
+                  <span>{samplingPixel ? 'Sampling...' : 'Sample Pixel'}</span>
+                </button>
+              </div>
+            </form>
+
+            {pixelResult && (
+              <div className={`p-4 rounded-xl border text-xs font-mono space-y-2 ${
+                pixelResult.status === 'SUCCESS'
+                  ? 'bg-emerald-950/40 border-emerald-500/40 text-emerald-200'
+                  : pixelResult.status === 'BLOCKED'
+                  ? 'bg-amber-950/40 border-amber-500/40 text-amber-200'
+                  : 'bg-slate-950 border-slate-800 text-slate-300'
+              }`}>
+                <div className="flex items-center justify-between">
+                  <span className="font-bold flex items-center gap-1.5">
+                    {pixelResult.status === 'SUCCESS' ? <CheckCircle2 className="w-4 h-4 text-emerald-400" /> : <AlertTriangle className="w-4 h-4 text-amber-400" />}
+                    <span>STATUS: {pixelResult.status}</span>
+                  </span>
+                  <span className="text-[10px] text-slate-400">{pixelResult.source || 'Sentinel-5P Connector'}</span>
+                </div>
+                {pixelResult.satellite_column !== undefined && (
+                  <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 pt-2 border-t border-slate-800">
+                    <div>
+                      <span className="text-[10px] text-slate-400 block">Measured Column:</span>
+                      <span className="font-bold text-cyan-300 text-sm">{pixelResult.satellite_column} {pixelResult.unit}</span>
+                    </div>
+                    <div>
+                      <span className="text-[10px] text-slate-400 block">QA Flag:</span>
+                      <span className="font-bold text-emerald-400">{pixelResult.satellite_qa}</span>
+                    </div>
+                    <div>
+                      <span className="text-[10px] text-slate-400 block">Valid Samples:</span>
+                      <span className="text-slate-200">{pixelResult.sample_count}</span>
+                    </div>
+                    <div>
+                      <span className="text-[10px] text-slate-400 block">Observation Time:</span>
+                      <span className="text-slate-300">{pixelResult.observation_time}</span>
+                    </div>
+                  </div>
+                )}
+                {pixelResult.message && <p className="font-sans text-[11px] text-slate-300">{pixelResult.message}</p>}
+                {pixelResult.error && <p className="font-sans text-[11px] text-rose-300">{pixelResult.error}</p>}
+              </div>
+            )}
+          </div>
+
           {/* Interactive ESA Copernicus CDSE Sentinel-5P Granule Query */}
           <div className="bg-navy-900/80 border border-slate-800 rounded-2xl p-6 space-y-4 shadow-xl">
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-slate-800 pb-3">
@@ -699,6 +964,19 @@ export const DataExplorerPage: React.FC<DataExplorerPageProps> = ({ dataMode, on
                 </div>
                 <div className="text-[10px] text-slate-500 font-mono">Maximum size: 15 MB | Standardized CPCB CCR Schema</div>
               </label>
+            </div>
+
+            {/* Quick Sample Dataset Reference */}
+            <div className="p-3.5 rounded-xl bg-slate-950/70 border border-slate-800 text-xs flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+              <div className="flex items-center gap-2">
+                <FileText className="w-4 h-4 text-cyan-400 flex-shrink-0" />
+                <span className="text-slate-300">
+                  Ready-to-use official sample dataset: <code className="text-cyan-300 bg-slate-900 px-1 py-0.5 rounded font-mono">data/raw/cpcb_caaqms_sample_delhi.csv</code> (22 validated hourly records across Delhi CAAQMS stations).
+                </span>
+              </div>
+              <span className="text-[10px] text-emerald-400 font-mono px-2 py-0.5 rounded bg-emerald-950/60 border border-emerald-800 flex-shrink-0">
+                Official CCR Format
+              </span>
             </div>
 
             {uploadError && (

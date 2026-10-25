@@ -66,7 +66,7 @@ def get_model_status(mode: Optional[str] = Query(None, description="'real' or 'd
                 "model_id": active_row["model_id"],
                 "model_name": active_row["model_name"],
                 "algorithm": active_row["algorithm"],
-                "data_mode": active_row.get("data_mode", "DEMO"),
+                "data_mode": active_row["data_mode"] if "data_mode" in active_row.keys() else "DEMO",
                 "trained_at": active_row["trained_at"],
                 "train_samples": active_row["train_samples"],
                 "val_samples": active_row["val_samples"],

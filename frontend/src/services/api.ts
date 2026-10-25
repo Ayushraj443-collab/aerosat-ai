@@ -11,6 +11,7 @@ import type {
   ConnectorStatusResponse,
   Sentinel5PQueryRequest,
   Sentinel5PQueryResponse,
+  CopernicusAuthTestResponse,
   DataMode
 } from './types';
 
@@ -34,6 +35,21 @@ export const api = {
   // Health
   async getHealth(): Promise<any> {
     const res = await fetch(`${API_BASE}/health`);
+    return handleResponse(res);
+  },
+
+  // Copernicus Auth Diagnostic
+  async testCopernicusAuth(): Promise<CopernicusAuthTestResponse> {
+    const res = await fetch(`${API_BASE}/data/connectors/copernicus/test-auth`);
+    return handleResponse(res);
+  },
+
+  async fetchSentinel5PObservation(payload: { latitude: number; longitude: number; date: string; pollutant: string }): Promise<any> {
+    const res = await fetch(`${API_BASE}/data/connectors/copernicus/fetch-observation`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload)
+    });
     return handleResponse(res);
   },
 

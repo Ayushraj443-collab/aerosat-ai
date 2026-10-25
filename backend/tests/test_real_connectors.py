@@ -97,3 +97,108 @@ def test_cpcb_csv_importer_missing_columns():
     res = CPCBCSVImporter.import_cpcb_csv(buf, pollutant="NO2")
     assert res["status"] == "VALIDATION_FAILED"
     assert "Missing required columns" in res["error"]
+
+def test_copernicus_oauth_manager_unconfigured():
+    """Verify CopernicusOAuthManager diagnostic returns NOT_CONFIGURED when credentials are empty."""
+    from app.data.connectors import CopernicusOAuthManager
+    from app.config import settings
+
+    # Ensure empty for test
+    old_id = settings.COPERNICUS_CLIENT_ID
+    old_secret = settings.COPERNICUS_CLIENT_SECRET
+    try:
+        settings.COPERNICUS_CLIENT_ID = ""
+        settings.COPERNICUS_CLIENT_SECRET = ""
+        diag = CopernicusOAuthManager.test_connection()
+        assert diag["credentials_configured"] is False
+        assert diag["token_request"] == "NOT_CONFIGURED"
+        assert diag["error_category"] == "CREDENTIALS_MISSING"
+        assert "COPERNICUS_CLIENT_ID" in diag["details"]
+    finally:
+        settings.COPERNICUS_CLIENT_ID = old_id
+        settings.COPERNICUS_CLIENT_SECRET = old_secret
+
+def test_copernicus_oauth_manager_mock_success(monkeypatch):
+    """Verify CopernicusOAuthManager handles successful token responses without leaking credentials."""
+    from app.data.connectors import CopernicusOAuthManager
+    from app.config import settings
+    import urllib.request
+    import json
+    import io
+
+    class MockResponse:
+        status = 200
+        def read(self):
+            return json.dumps({
+                "access_token": "mocked-test-bearer-token",
+                "expires_in": 3600,
+                "token_type": "Bearer"
+            }).encode("utf-8")
+        def __enter__(self):
+            return self
+        def __exit__(self, exc_type, exc_val, exc_tb):
+            pass
+
+    monkeypatch.setattr(urllib.request, "urlopen", lambda req, timeout=15: MockResponse())
+    old_id = settings.COPERNICUS_CLIENT_ID
+    old_secret = settings.COPERNICUS_CLIENT_SECRET
+    try:
+        settings.COPERNICUS_CLIENT_ID = "test-client-id"
+        settings.COPERNICUS_CLIENT_SECRET = "test-client-secret"
+        diag = CopernicusOAuthManager.test_connection()
+        assert diag["credentials_configured"] is True
+        assert diag["token_request"] == "SUCCESS"
+        assert diag["http_status"] == 200
+        assert diag["error_category"] is None
+        # Verify secrets are NOT leaked in output
+        assert "test-client-secret" not in json.dumps(diag)
+        assert "mocked-test-bearer-token" not in json.dumps(diag)
+    finally:
+        settings.COPERNICUS_CLIENT_ID = old_id
+        settings.COPERNICUS_CLIENT_SECRET = old_secret
+
+def test_copernicus_fetch_observation_blocked_without_auth():
+    """Verify that fetch_sentinel5p_observation returns BLOCKED without credentials."""
+    from app.data.connectors import CopernicusSentinel5PConnector
+    from app.config import settings
+
+    old_id = settings.COPERNICUS_CLIENT_ID
+    old_secret = settings.COPERNICUS_CLIENT_SECRET
+    try:
+        settings.COPERNICUS_CLIENT_ID = ""
+        settings.COPERNICUS_CLIENT_SECRET = ""
+        res = CopernicusSentinel5PConnector.fetch_sentinel5p_observation(28.6476, 77.3158, "2024-01-05", "NO2")
+        assert res["status"] == "BLOCKED"
+        assert res["data"] is None
+        assert "OAuth credentials required" in res["message"]
+    finally:
+        settings.COPERNICUS_CLIENT_ID = old_id
+        settings.COPERNICUS_CLIENT_SECRET = old_secret
+
+def test_copernicus_test_auth_api():
+    """Verify GET /api/data/connectors/copernicus/test-auth returns valid sanitized schema."""
+    from fastapi.testclient import TestClient
+    from app.main import app
+
+    client = TestClient(app)
+    res = client.get("/api/data/connectors/copernicus/test-auth")
+    assert res.status_code == 200
+    data = res.json()
+    assert "credentials_configured" in data
+    assert "token_request" in data
+    assert "auth_provider" in data
+    assert "timestamp" in data
+    assert "details" in data
+
+def test_sample_cpcb_file_import():
+    """Verify that the official sample file data/raw/cpcb_caaqms_sample_delhi.csv imports successfully."""
+    from app.config import settings
+    sample_file = settings.DATA_RAW_DIR / "cpcb_caaqms_sample_delhi.csv"
+    assert sample_file.exists(), f"Expected sample file at {sample_file}"
+    
+    with open(sample_file, "r") as f:
+        res = CPCBCSVImporter.import_cpcb_csv(f, pollutant="NO2")
+    assert res["status"] == "SUCCESS"
+    assert res["imported_records"] >= 20
+    assert res["pollutant"] == "NO2"
+

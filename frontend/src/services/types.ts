@@ -322,3 +322,14 @@ export interface GeoJsonGridCollection {
   };
   features: GeoJsonGridFeature[];
 }
+
+export interface CopernicusAuthTestResponse {
+  credentials_configured: boolean;
+  token_request: 'SUCCESS' | 'FAILURE' | 'NOT_CONFIGURED';
+  auth_provider: string;
+  http_status: number | null;
+  error_category: string | null;
+  timestamp: string;
+  details: string;
+}
+

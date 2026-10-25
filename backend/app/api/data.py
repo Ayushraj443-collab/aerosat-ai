@@ -16,6 +16,7 @@ from app.database import (
 )
 from app.data.connectors import (
     DataSourceRegistry,
+    CopernicusOAuthManager,
     CopernicusSentinel5PConnector,
     OpenMeteoWeatherConnector,
     CopernicusCAMSAirQualityConnector,
@@ -33,7 +34,8 @@ from app.models.schemas import (
     ConnectorStatusResponse,
     Sentinel5PQueryRequest,
     Sentinel5PQueryResponse,
-    RealDataIngestionResponse
+    RealDataIngestionResponse,
+    CopernicusAuthTestResponse
 )
 
 router = APIRouter(prefix="/data", tags=["Data Sources & Observations"])
@@ -102,6 +104,43 @@ def query_sentinel5p_catalogue(request: Sentinel5PQueryRequest):
         source_catalogue_url=CopernicusSentinel5PConnector.CATALOGUE_URL,
         auth_required_for_download=res.get("auth_required_for_download", True)
     )
+
+@router.get("/connectors/copernicus/test-auth", response_model=CopernicusAuthTestResponse)
+def test_copernicus_authentication():
+    """
+    Execute backend-only OAuth authentication test against Copernicus Sentinel Hub / CDSE.
+    Reports sanitized diagnostic status without ever returning or logging client secrets or tokens.
+    """
+    diag = CopernicusOAuthManager.test_connection()
+    return CopernicusAuthTestResponse(
+        credentials_configured=diag["credentials_configured"],
+        token_request=diag["token_request"],
+        auth_provider=diag["auth_provider"],
+        http_status=diag["http_status"],
+        error_category=diag["error_category"],
+        timestamp=diag["timestamp"],
+        details=diag["details"]
+    )
+
+@router.post("/connectors/copernicus/fetch-observation")
+def fetch_sentinel5p_pixel_observation(
+    latitude: float = Body(28.6476, embed=True),
+    longitude: float = Body(77.3158, embed=True),
+    date: str = Body("2024-01-05", embed=True),
+    pollutant: str = Body("NO2", embed=True)
+):
+    """
+    Retrieve genuine Sentinel-5P TROPOMI Level-2 observation via Sentinel Hub API.
+    Returns explicit status (BLOCKED if credentials missing, UNAVAILABLE if cloud-covered, or SUCCESS).
+    Zero synthetic fallback.
+    """
+    res = CopernicusSentinel5PConnector.fetch_sentinel5p_observation(
+        lat=latitude,
+        lon=longitude,
+        date=date,
+        pollutant=pollutant
+    )
+    return res
 
 @router.post("/connectors/meteo/fetch")
 def fetch_live_meteorology(
