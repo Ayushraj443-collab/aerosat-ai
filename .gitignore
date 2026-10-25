@@ -1,0 +1,36 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+backend/venv/
+.pytest_cache/
+*.joblib
+*.pkl
+
+# Node / Frontend
+frontend/node_modules/
+frontend/dist/
+frontend/.vite/
+frontend/package-lock.json
+
+# Environment & Credentials
+.env
+*.env
+!.env.example
+secrets/
+*.pem
+*.key
+
+# Data & SQLite artifacts
+data/*.db
+data/*.sqlite3
+data/models/*.joblib
+!data/models/.gitkeep
+data/raw/*.csv
+data/processed/
+
+# OS / IDE
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/

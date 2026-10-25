@@ -1,0 +1,1393 @@
+{
+  "model_id": "no2_random_forest_20261025_212033",
+  "model_name": "AeroSat-NO2-RANDOM_FOREST",
+  "target_pollutant": "NO2",
+  "algorithm": "random_forest",
+  "trained_at": "2026-10-25T21:20:34.106744",
+  "train_samples": 1112,
+  "val_samples": 1668,
+  "mae": 9.56,
+  "rmse": 14.12,
+  "r2": 0.9046,
+  "mean_bias_error": 0.79,
+  "normalized_rmse_pct": 20.5,
+  "baseline_comparison": {
+    "baseline_type": "Nearest Station Inverse-Distance Weighting (IDW)",
+    "baseline_mae": 49.61,
+    "baseline_rmse": 57.65,
+    "baseline_r2": -0.5902,
+    "ml_improvement_mae_pct": 80.7,
+    "ml_improvement_rmse_pct": 75.5
+  },
+  "spatial_validation_folds": [
+    {
+      "fold": 1,
+      "held_out_stations": [
+        "DEL_JAHANGIRPURI",
+        "DEL_MANDIR_MARG",
+        "DEL_RK_PURAM",
+        "DEL_WAZIRPUR",
+        "GGN_SEC_51"
+      ],
+      "train_count": 1112,
+      "val_count": 556,
+      "mae": 9.56,
+      "rmse": 14.03,
+      "r2": 0.9075
+    },
+    {
+      "fold": 2,
+      "held_out_stations": [
+        "DEL_IGI_AIRPORT",
+        "DEL_OKHLA_PH2",
+        "DEL_PUNJABI_BAGH",
+        "GZB_SANJAY_NAGAR",
+        "NOI_SEC_62"
+      ],
+      "train_count": 1112,
+      "val_count": 556,
+      "mae": 9.37,
+      "rmse": 14.07,
+      "r2": 0.9037
+    },
+    {
+      "fold": 3,
+      "held_out_stations": [
+        "DEL_ANAND_VIHAR",
+        "DEL_BAWANA",
+        "DEL_LODHI_ROAD",
+        "DEL_ROHINI_SEC16",
+        "FBD_SEC_16A"
+      ],
+      "train_count": 1112,
+      "val_count": 556,
+      "mae": 9.77,
+      "rmse": 14.26,
+      "r2": 0.9026
+    }
+  ],
+  "feature_importances": [
+    {
+      "feature": "ventilation_index",
+      "importance": 0.8961
+    },
+    {
+      "feature": "satellite_column",
+      "importance": 0.0311
+    },
+    {
+      "feature": "boundary_layer_height_m",
+      "importance": 0.0293
+    },
+    {
+      "feature": "latitude",
+      "importance": 0.0168
+    },
+    {
+      "feature": "elevation_m",
+      "importance": 0.0078
+    },
+    {
+      "feature": "longitude",
+      "importance": 0.0069
+    },
+    {
+      "feature": "road_density_proxy",
+      "importance": 0.0064
+    },
+    {
+      "feature": "day_cos",
+      "importance": 0.0015
+    },
+    {
+      "feature": "day_sin",
+      "importance": 0.0013
+    },
+    {
+      "feature": "wind_direction_deg",
+      "importance": 0.001
+    },
+    {
+      "feature": "temperature_c",
+      "importance": 0.0009
+    },
+    {
+      "feature": "relative_humidity_pct",
+      "importance": 0.0004
+    },
+    {
+      "feature": "wind_speed_ms",
+      "importance": 0.0003
+    }
+  ],
+  "observed_vs_predicted": [
+    {
+      "index": 0,
+      "observed": 87.5,
+      "predicted": 67.21,
+      "error": -20.29,
+      "date": "2024-01-01",
+      "station": "Anand Vihar, Delhi"
+    },
+    {
+      "index": 11,
+      "observed": 61.99,
+      "predicted": 71.18,
+      "error": 9.19,
+      "date": "2024-01-01",
+      "station": "Rohini Sector 16, Delhi"
+    },
+    {
+      "index": 22,
+      "observed": 148.77,
+      "predicted": 154.15,
+      "error": 5.38,
+      "date": "2024-01-02",
+      "station": "Sanjay Nagar, Ghaziabad"
+    },
+    {
+      "index": 33,
+      "observed": 119.52,
+      "predicted": 121.11,
+      "error": 1.59,
+      "date": "2024-01-03",
+      "station": "Bawana Industrial Area, Delhi"
+    },
+    {
+      "index": 44,
+      "observed": 107.26,
+      "predicted": 126.08,
+      "error": 18.82,
+      "date": "2024-01-04",
+      "station": "Lodhi Road, Delhi (IMD)"
+    },
+    {
+      "index": 55,
+      "observed": 65.85,
+      "predicted": 64.3,
+      "error": -1.55,
+      "date": "2024-01-05",
+      "station": "Punjabi Bagh, Delhi"
+    },
+    {
+      "index": 67,
+      "observed": 50.64,
+      "predicted": 74.89,
+      "error": 24.25,
+      "date": "2024-01-05",
+      "station": "Rohini Sector 16, Delhi"
+    },
+    {
+      "index": 78,
+      "observed": 77.52,
+      "predicted": 86.87,
+      "error": 9.35,
+      "date": "2024-01-06",
+      "station": "Sector 51, Gurugram"
+    },
+    {
+      "index": 89,
+      "observed": 124.13,
+      "predicted": 104.09,
+      "error": -20.04,
+      "date": "2024-01-07",
+      "station": "Okhla Phase-2, Delhi"
+    },
+    {
+      "index": 100,
+      "observed": 92.25,
+      "predicted": 126.08,
+      "error": 33.83,
+      "date": "2024-01-08",
+      "station": "Lodhi Road, Delhi (IMD)"
+    },
+    {
+      "index": 111,
+      "observed": 110.83,
+      "predicted": 107.05,
+      "error": -3.78,
+      "date": "2024-01-09",
+      "station": "Punjabi Bagh, Delhi"
+    },
+    {
+      "index": 123,
+      "observed": 81.28,
+      "predicted": 88.11,
+      "error": 6.83,
+      "date": "2024-01-10",
+      "station": "Mandir Marg, Delhi"
+    },
+    {
+      "index": 134,
+      "observed": 109.08,
+      "predicted": 114.2,
+      "error": 5.12,
+      "date": "2024-01-10",
+      "station": "Wazirpur, Delhi"
+    },
+    {
+      "index": 145,
+      "observed": 129.51,
+      "predicted": 118.46,
+      "error": -11.05,
+      "date": "2024-01-11",
+      "station": "Sector 62, Noida"
+    },
+    {
+      "index": 156,
+      "observed": 150.68,
+      "predicted": 158.29,
+      "error": 7.61,
+      "date": "2024-01-12",
+      "station": "Bawana Industrial Area, Delhi"
+    },
+    {
+      "index": 167,
+      "observed": 84.83,
+      "predicted": 86.38,
+      "error": 1.55,
+      "date": "2024-01-13",
+      "station": "IGI Airport (T3), Delhi"
+    },
+    {
+      "index": 179,
+      "observed": 172.23,
+      "predicted": 136.93,
+      "error": -35.3,
+      "date": "2024-01-14",
+      "station": "Anand Vihar, Delhi"
+    },
+    {
+      "index": 190,
+      "observed": 175.0,
+      "predicted": 154.88,
+      "error": -20.12,
+      "date": "2024-01-14",
+      "station": "Wazirpur, Delhi"
+    },
+    {
+      "index": 201,
+      "observed": 132.14,
+      "predicted": 117.86,
+      "error": -14.28,
+      "date": "2024-01-15",
+      "station": "Sector 62, Noida"
+    },
+    {
+      "index": 212,
+      "observed": 102.37,
+      "predicted": 108.75,
+      "error": 6.38,
+      "date": "2024-01-16",
+      "station": "Jahangirpuri, Delhi"
+    },
+    {
+      "index": 223,
+      "observed": 64.91,
+      "predicted": 87.72,
+      "error": 22.81,
+      "date": "2024-01-17",
+      "station": "Mandir Marg, Delhi"
+    },
+    {
+      "index": 234,
+      "observed": 75.2,
+      "predicted": 85.73,
+      "error": 10.53,
+      "date": "2024-01-17",
+      "station": "Rohini Sector 16, Delhi"
+    },
+    {
+      "index": 246,
+      "observed": 129.75,
+      "predicted": 149.06,
+      "error": 19.31,
+      "date": "2024-01-18",
+      "station": "Sector 16A, Faridabad"
+    },
+    {
+      "index": 257,
+      "observed": 132.63,
+      "predicted": 117.86,
+      "error": -14.77,
+      "date": "2024-01-19",
+      "station": "Sector 62, Noida"
+    },
+    {
+      "index": 268,
+      "observed": 114.36,
+      "predicted": 113.08,
+      "error": -1.28,
+      "date": "2024-01-20",
+      "station": "Jahangirpuri, Delhi"
+    },
+    {
+      "index": 279,
+      "observed": 135.64,
+      "predicted": 93.73,
+      "error": -41.91,
+      "date": "2024-01-21",
+      "station": "R K Puram, Delhi"
+    },
+    {
+      "index": 290,
+      "observed": 151.46,
+      "predicted": 127.94,
+      "error": -23.52,
+      "date": "2024-01-22",
+      "station": "Anand Vihar, Delhi"
+    },
+    {
+      "index": 302,
+      "observed": 156.23,
+      "predicted": 126.86,
+      "error": -29.37,
+      "date": "2024-01-22",
+      "station": "Wazirpur, Delhi"
+    },
+    {
+      "index": 313,
+      "observed": 123.52,
+      "predicted": 118.46,
+      "error": -5.06,
+      "date": "2024-01-23",
+      "station": "Sector 62, Noida"
+    },
+    {
+      "index": 324,
+      "observed": 163.01,
+      "predicted": 147.85,
+      "error": -15.16,
+      "date": "2024-01-24",
+      "station": "Jahangirpuri, Delhi"
+    },
+    {
+      "index": 335,
+      "observed": 121.1,
+      "predicted": 157.22,
+      "error": 36.12,
+      "date": "2024-01-25",
+      "station": "Mandir Marg, Delhi"
+    },
+    {
+      "index": 346,
+      "observed": 127.0,
+      "predicted": 160.36,
+      "error": 33.36,
+      "date": "2024-01-25",
+      "station": "Rohini Sector 16, Delhi"
+    },
+    {
+      "index": 358,
+      "observed": 124.92,
+      "predicted": 149.06,
+      "error": 24.14,
+      "date": "2024-01-26",
+      "station": "Sector 16A, Faridabad"
+    },
+    {
+      "index": 369,
+      "observed": 125.4,
+      "predicted": 112.18,
+      "error": -13.22,
+      "date": "2024-01-27",
+      "station": "Sector 62, Noida"
+    },
+    {
+      "index": 380,
+      "observed": 43.49,
+      "predicted": 60.91,
+      "error": 17.42,
+      "date": "2024-01-28",
+      "station": "Lodhi Road, Delhi (IMD)"
+    },
+    {
+      "index": 391,
+      "observed": 81.34,
+      "predicted": 97.0,
+      "error": 15.66,
+      "date": "2024-01-29",
+      "station": "IGI Airport (T3), Delhi"
+    },
+    {
+      "index": 402,
+      "observed": 144.79,
+      "predicted": 163.62,
+      "error": 18.83,
+      "date": "2024-01-30",
+      "station": "Punjabi Bagh, Delhi"
+    },
+    {
+      "index": 413,
+      "observed": 118.39,
+      "predicted": 149.06,
+      "error": 30.67,
+      "date": "2024-01-30",
+      "station": "Sector 16A, Faridabad"
+    },
+    {
+      "index": 425,
+      "observed": 130.67,
+      "predicted": 118.46,
+      "error": -12.21,
+      "date": "2024-01-31",
+      "station": "Sector 62, Noida"
+    },
+    {
+      "index": 436,
+      "observed": 114.12,
+      "predicted": 117.0,
+      "error": 2.88,
+      "date": "2024-02-01",
+      "station": "Bawana Industrial Area, Delhi"
+    },
+    {
+      "index": 447,
+      "observed": 131.58,
+      "predicted": 112.27,
+      "error": -19.31,
+      "date": "2024-02-02",
+      "station": "R K Puram, Delhi"
+    },
+    {
+      "index": 458,
+      "observed": 145.44,
+      "predicted": 160.06,
+      "error": 14.62,
+      "date": "2024-02-03",
+      "station": "Punjabi Bagh, Delhi"
+    },
+    {
+      "index": 469,
+      "observed": 165.38,
+      "predicted": 139.6,
+      "error": -25.78,
+      "date": "2024-02-04",
+      "station": "Anand Vihar, Delhi"
+    },
+    {
+      "index": 481,
+      "observed": 175.0,
+      "predicted": 154.88,
+      "error": -20.12,
+      "date": "2024-02-04",
+      "station": "Wazirpur, Delhi"
+    },
+    {
+      "index": 492,
+      "observed": 114.46,
+      "predicted": 146.88,
+      "error": 32.42,
+      "date": "2024-02-05",
+      "station": "Sector 51, Gurugram"
+    },
+    {
+      "index": 503,
+      "observed": 109.6,
+      "predicted": 103.23,
+      "error": -6.37,
+      "date": "2024-02-06",
+      "station": "Bawana Industrial Area, Delhi"
+    },
+    {
+      "index": 514,
+      "observed": 58.55,
+      "predicted": 57.13,
+      "error": -1.42,
+      "date": "2024-02-07",
+      "station": "R K Puram, Delhi"
+    },
+    {
+      "index": 525,
+      "observed": 171.6,
+      "predicted": 123.79,
+      "error": -47.81,
+      "date": "2024-02-08",
+      "station": "Anand Vihar, Delhi"
+    },
+    {
+      "index": 537,
+      "observed": 126.87,
+      "predicted": 142.79,
+      "error": 15.92,
+      "date": "2024-02-08",
+      "station": "Sector 16A, Faridabad"
+    },
+    {
+      "index": 548,
+      "observed": 117.41,
+      "predicted": 113.87,
+      "error": -3.54,
+      "date": "2024-02-09",
+      "station": "Sector 62, Noida"
+    },
+    {
+      "index": 559,
+      "observed": 64.87,
+      "predicted": 69.61,
+      "error": 4.74,
+      "date": "2024-02-10",
+      "station": "Jahangirpuri, Delhi"
+    },
+    {
+      "index": 570,
+      "observed": 62.31,
+      "predicted": 66.16,
+      "error": 3.85,
+      "date": "2024-02-11",
+      "station": "Mandir Marg, Delhi"
+    },
+    {
+      "index": 581,
+      "observed": 98.97,
+      "predicted": 105.18,
+      "error": 6.21,
+      "date": "2024-02-11",
+      "station": "Wazirpur, Delhi"
+    },
+    {
+      "index": 592,
+      "observed": 115.98,
+      "predicted": 144.48,
+      "error": 28.5,
+      "date": "2024-02-12",
+      "station": "Sector 51, Gurugram"
+    },
+    {
+      "index": 604,
+      "observed": 79.76,
+      "predicted": 71.61,
+      "error": -8.15,
+      "date": "2024-02-13",
+      "station": "Okhla Phase-2, Delhi"
+    },
+    {
+      "index": 615,
+      "observed": 88.75,
+      "predicted": 80.62,
+      "error": -8.13,
+      "date": "2024-02-14",
+      "station": "Jahangirpuri, Delhi"
+    },
+    {
+      "index": 626,
+      "observed": 48.08,
+      "predicted": 61.49,
+      "error": 13.41,
+      "date": "2024-02-15",
+      "station": "Mandir Marg, Delhi"
+    },
+    {
+      "index": 637,
+      "observed": 119.65,
+      "predicted": 104.03,
+      "error": -15.62,
+      "date": "2024-02-16",
+      "station": "Anand Vihar, Delhi"
+    },
+    {
+      "index": 648,
+      "observed": 89.59,
+      "predicted": 81.82,
+      "error": -7.77,
+      "date": "2024-02-16",
+      "station": "Sanjay Nagar, Ghaziabad"
+    },
+    {
+      "index": 660,
+      "observed": 83.41,
+      "predicted": 93.39,
+      "error": 9.98,
+      "date": "2024-02-17",
+      "station": "Sector 62, Noida"
+    },
+    {
+      "index": 671,
+      "observed": 80.17,
+      "predicted": 79.88,
+      "error": -0.29,
+      "date": "2024-02-18",
+      "station": "Jahangirpuri, Delhi"
+    },
+    {
+      "index": 682,
+      "observed": 122.56,
+      "predicted": 121.01,
+      "error": -1.55,
+      "date": "2024-02-19",
+      "station": "IGI Airport (T3), Delhi"
+    },
+    {
+      "index": 693,
+      "observed": 136.87,
+      "predicted": 160.36,
+      "error": 23.49,
+      "date": "2024-02-19",
+      "station": "Rohini Sector 16, Delhi"
+    },
+    {
+      "index": 704,
+      "observed": 116.31,
+      "predicted": 146.88,
+      "error": 30.57,
+      "date": "2024-02-20",
+      "station": "Sector 51, Gurugram"
+    },
+    {
+      "index": 716,
+      "observed": 67.71,
+      "predicted": 76.57,
+      "error": 8.86,
+      "date": "2024-02-21",
+      "station": "Bawana Industrial Area, Delhi"
+    },
+    {
+      "index": 727,
+      "observed": 56.86,
+      "predicted": 58.13,
+      "error": 1.27,
+      "date": "2024-02-22",
+      "station": "IGI Airport (T3), Delhi"
+    },
+    {
+      "index": 738,
+      "observed": 65.4,
+      "predicted": 88.81,
+      "error": 23.41,
+      "date": "2024-02-22",
+      "station": "Rohini Sector 16, Delhi"
+    },
+    {
+      "index": 749,
+      "observed": 61.78,
+      "predicted": 72.8,
+      "error": 11.02,
+      "date": "2024-02-23",
+      "station": "Sector 51, Gurugram"
+    },
+    {
+      "index": 760,
+      "observed": 100.5,
+      "predicted": 97.03,
+      "error": -3.47,
+      "date": "2024-02-24",
+      "station": "Jahangirpuri, Delhi"
+    },
+    {
+      "index": 771,
+      "observed": 73.08,
+      "predicted": 88.17,
+      "error": 15.09,
+      "date": "2024-02-25",
+      "station": "R K Puram, Delhi"
+    },
+    {
+      "index": 783,
+      "observed": 49.75,
+      "predicted": 60.83,
+      "error": 11.08,
+      "date": "2024-02-26",
+      "station": "Punjabi Bagh, Delhi"
+    },
+    {
+      "index": 794,
+      "observed": 55.45,
+      "predicted": 43.2,
+      "error": -12.25,
+      "date": "2024-02-26",
+      "station": "Rohini Sector 16, Delhi"
+    },
+    {
+      "index": 805,
+      "observed": 87.59,
+      "predicted": 111.9,
+      "error": 24.31,
+      "date": "2024-02-27",
+      "station": "Sanjay Nagar, Ghaziabad"
+    },
+    {
+      "index": 816,
+      "observed": 62.62,
+      "predicted": 48.87,
+      "error": -13.75,
+      "date": "2024-02-28",
+      "station": "Okhla Phase-2, Delhi"
+    },
+    {
+      "index": 827,
+      "observed": 29.99,
+      "predicted": 36.74,
+      "error": 6.75,
+      "date": "2024-02-29",
+      "station": "Lodhi Road, Delhi (IMD)"
+    },
+    {
+      "index": 839,
+      "observed": 35.08,
+      "predicted": 35.94,
+      "error": 0.86,
+      "date": "2024-03-01",
+      "station": "Mandir Marg, Delhi"
+    },
+    {
+      "index": 850,
+      "observed": 26.46,
+      "predicted": 37.5,
+      "error": 11.04,
+      "date": "2024-03-01",
+      "station": "Rohini Sector 16, Delhi"
+    },
+    {
+      "index": 861,
+      "observed": 86.66,
+      "predicted": 99.26,
+      "error": 12.6,
+      "date": "2024-03-02",
+      "station": "Sector 51, Gurugram"
+    },
+    {
+      "index": 872,
+      "observed": 30.2,
+      "predicted": 28.93,
+      "error": -1.27,
+      "date": "2024-03-03",
+      "station": "Jahangirpuri, Delhi"
+    },
+    {
+      "index": 883,
+      "observed": 12.62,
+      "predicted": 28.66,
+      "error": 16.04,
+      "date": "2024-03-04",
+      "station": "Mandir Marg, Delhi"
+    },
+    {
+      "index": 895,
+      "observed": 60.17,
+      "predicted": 58.69,
+      "error": -1.48,
+      "date": "2024-03-05",
+      "station": "Anand Vihar, Delhi"
+    },
+    {
+      "index": 906,
+      "observed": 62.76,
+      "predicted": 59.93,
+      "error": -2.83,
+      "date": "2024-03-05",
+      "station": "Wazirpur, Delhi"
+    },
+    {
+      "index": 917,
+      "observed": 38.14,
+      "predicted": 36.72,
+      "error": -1.42,
+      "date": "2024-03-06",
+      "station": "Sector 62, Noida"
+    },
+    {
+      "index": 928,
+      "observed": 33.92,
+      "predicted": 28.93,
+      "error": -4.99,
+      "date": "2024-03-07",
+      "station": "Jahangirpuri, Delhi"
+    },
+    {
+      "index": 939,
+      "observed": 55.71,
+      "predicted": 54.43,
+      "error": -1.28,
+      "date": "2024-03-08",
+      "station": "Mandir Marg, Delhi"
+    },
+    {
+      "index": 950,
+      "observed": 66.69,
+      "predicted": 49.68,
+      "error": -17.01,
+      "date": "2024-03-09",
+      "station": "Anand Vihar, Delhi"
+    },
+    {
+      "index": 962,
+      "observed": 43.96,
+      "predicted": 30.11,
+      "error": -13.85,
+      "date": "2024-03-10",
+      "station": "Anand Vihar, Delhi"
+    },
+    {
+      "index": 973,
+      "observed": 35.1,
+      "predicted": 34.89,
+      "error": -0.21,
+      "date": "2024-03-10",
+      "station": "Sector 16A, Faridabad"
+    },
+    {
+      "index": 984,
+      "observed": 39.5,
+      "predicted": 41.17,
+      "error": 1.67,
+      "date": "2024-03-11",
+      "station": "Sector 51, Gurugram"
+    },
+    {
+      "index": 995,
+      "observed": 26.27,
+      "predicted": 23.08,
+      "error": -3.19,
+      "date": "2024-03-12",
+      "station": "Okhla Phase-2, Delhi"
+    },
+    {
+      "index": 1006,
+      "observed": 37.62,
+      "predicted": 37.99,
+      "error": 0.37,
+      "date": "2024-03-13",
+      "station": "R K Puram, Delhi"
+    },
+    {
+      "index": 1018,
+      "observed": 26.99,
+      "predicted": 32.55,
+      "error": 5.56,
+      "date": "2024-03-14",
+      "station": "Mandir Marg, Delhi"
+    },
+    {
+      "index": 1029,
+      "observed": 43.33,
+      "predicted": 31.0,
+      "error": -12.33,
+      "date": "2024-03-14",
+      "station": "Wazirpur, Delhi"
+    },
+    {
+      "index": 1040,
+      "observed": 38.93,
+      "predicted": 36.27,
+      "error": -2.66,
+      "date": "2024-03-15",
+      "station": "Sector 62, Noida"
+    },
+    {
+      "index": 1051,
+      "observed": 28.09,
+      "predicted": 27.3,
+      "error": -0.79,
+      "date": "2024-03-16",
+      "station": "Jahangirpuri, Delhi"
+    },
+    {
+      "index": 1062,
+      "observed": 25.7,
+      "predicted": 23.0,
+      "error": -2.7,
+      "date": "2024-03-17",
+      "station": "R K Puram, Delhi"
+    },
+    {
+      "index": 1074,
+      "observed": 28.29,
+      "predicted": 27.97,
+      "error": -0.32,
+      "date": "2024-03-18",
+      "station": "Mandir Marg, Delhi"
+    },
+    {
+      "index": 1085,
+      "observed": 59.84,
+      "predicted": 55.57,
+      "error": -4.27,
+      "date": "2024-03-19",
+      "station": "Anand Vihar, Delhi"
+    },
+    {
+      "index": 1096,
+      "observed": 63.53,
+      "predicted": 51.8,
+      "error": -11.73,
+      "date": "2024-03-19",
+      "station": "Wazirpur, Delhi"
+    },
+    {
+      "index": 1107,
+      "observed": 25.92,
+      "predicted": 24.48,
+      "error": -1.44,
+      "date": "2024-03-20",
+      "station": "Sector 16A, Faridabad"
+    },
+    {
+      "index": 1118,
+      "observed": 37.99,
+      "predicted": 34.01,
+      "error": -3.98,
+      "date": "2024-03-21",
+      "station": "Okhla Phase-2, Delhi"
+    },
+    {
+      "index": 1129,
+      "observed": 41.26,
+      "predicted": 42.31,
+      "error": 1.05,
+      "date": "2024-03-22",
+      "station": "R K Puram, Delhi"
+    },
+    {
+      "index": 1141,
+      "observed": 24.41,
+      "predicted": 34.22,
+      "error": 9.81,
+      "date": "2024-03-23",
+      "station": "Punjabi Bagh, Delhi"
+    },
+    {
+      "index": 1152,
+      "observed": 40.93,
+      "predicted": 36.49,
+      "error": -4.44,
+      "date": "2024-03-24",
+      "station": "Anand Vihar, Delhi"
+    },
+    {
+      "index": 1163,
+      "observed": 23.08,
+      "predicted": 24.8,
+      "error": 1.72,
+      "date": "2024-03-24",
+      "station": "Sector 16A, Faridabad"
+    },
+    {
+      "index": 1174,
+      "observed": 24.6,
+      "predicted": 23.08,
+      "error": -1.52,
+      "date": "2024-03-25",
+      "station": "Sector 62, Noida"
+    },
+    {
+      "index": 1185,
+      "observed": 30.85,
+      "predicted": 30.11,
+      "error": -0.74,
+      "date": "2024-03-26",
+      "station": "Jahangirpuri, Delhi"
+    },
+    {
+      "index": 1197,
+      "observed": 25.86,
+      "predicted": 29.73,
+      "error": 3.87,
+      "date": "2024-03-27",
+      "station": "IGI Airport (T3), Delhi"
+    },
+    {
+      "index": 1208,
+      "observed": 31.18,
+      "predicted": 30.89,
+      "error": -0.29,
+      "date": "2024-03-27",
+      "station": "Rohini Sector 16, Delhi"
+    },
+    {
+      "index": 1219,
+      "observed": 22.58,
+      "predicted": 33.14,
+      "error": 10.56,
+      "date": "2024-03-28",
+      "station": "Sector 51, Gurugram"
+    },
+    {
+      "index": 1230,
+      "observed": 31.06,
+      "predicted": 23.24,
+      "error": -7.82,
+      "date": "2024-03-29",
+      "station": "Okhla Phase-2, Delhi"
+    },
+    {
+      "index": 1241,
+      "observed": 23.57,
+      "predicted": 23.42,
+      "error": -0.15,
+      "date": "2024-03-30",
+      "station": "R K Puram, Delhi"
+    },
+    {
+      "index": 1253,
+      "observed": 32.99,
+      "predicted": 35.82,
+      "error": 2.83,
+      "date": "2024-03-31",
+      "station": "Punjabi Bagh, Delhi"
+    },
+    {
+      "index": 1264,
+      "observed": 37.41,
+      "predicted": 32.6,
+      "error": -4.81,
+      "date": "2024-03-31",
+      "station": "Sector 16A, Faridabad"
+    },
+    {
+      "index": 1275,
+      "observed": 27.0,
+      "predicted": 26.36,
+      "error": -0.64,
+      "date": "2024-04-01",
+      "station": "Sector 51, Gurugram"
+    },
+    {
+      "index": 1286,
+      "observed": 26.04,
+      "predicted": 26.4,
+      "error": 0.36,
+      "date": "2024-04-02",
+      "station": "Bawana Industrial Area, Delhi"
+    },
+    {
+      "index": 1297,
+      "observed": 19.61,
+      "predicted": 23.44,
+      "error": 3.83,
+      "date": "2024-04-03",
+      "station": "Lodhi Road, Delhi (IMD)"
+    },
+    {
+      "index": 1308,
+      "observed": 29.46,
+      "predicted": 27.69,
+      "error": -1.77,
+      "date": "2024-04-04",
+      "station": "IGI Airport (T3), Delhi"
+    },
+    {
+      "index": 1320,
+      "observed": 31.89,
+      "predicted": 34.57,
+      "error": 2.68,
+      "date": "2024-04-05",
+      "station": "Punjabi Bagh, Delhi"
+    },
+    {
+      "index": 1331,
+      "observed": 32.08,
+      "predicted": 30.65,
+      "error": -1.43,
+      "date": "2024-04-05",
+      "station": "Rohini Sector 16, Delhi"
+    },
+    {
+      "index": 1342,
+      "observed": 29.82,
+      "predicted": 29.72,
+      "error": -0.1,
+      "date": "2024-04-06",
+      "station": "Wazirpur, Delhi"
+    },
+    {
+      "index": 1353,
+      "observed": 20.88,
+      "predicted": 22.2,
+      "error": 1.32,
+      "date": "2024-04-07",
+      "station": "Sector 62, Noida"
+    },
+    {
+      "index": 1364,
+      "observed": 15.88,
+      "predicted": 22.64,
+      "error": 6.76,
+      "date": "2024-04-08",
+      "station": "Lodhi Road, Delhi (IMD)"
+    },
+    {
+      "index": 1376,
+      "observed": 23.04,
+      "predicted": 27.69,
+      "error": 4.65,
+      "date": "2024-04-09",
+      "station": "IGI Airport (T3), Delhi"
+    },
+    {
+      "index": 1387,
+      "observed": 29.47,
+      "predicted": 34.25,
+      "error": 4.78,
+      "date": "2024-04-10",
+      "station": "Punjabi Bagh, Delhi"
+    },
+    {
+      "index": 1398,
+      "observed": 24.21,
+      "predicted": 30.65,
+      "error": 6.44,
+      "date": "2024-04-10",
+      "station": "Rohini Sector 16, Delhi"
+    },
+    {
+      "index": 1409,
+      "observed": 24.67,
+      "predicted": 30.36,
+      "error": 5.69,
+      "date": "2024-04-11",
+      "station": "Sector 51, Gurugram"
+    },
+    {
+      "index": 1420,
+      "observed": 33.56,
+      "predicted": 30.77,
+      "error": -2.79,
+      "date": "2024-04-12",
+      "station": "Jahangirpuri, Delhi"
+    },
+    {
+      "index": 1432,
+      "observed": 28.95,
+      "predicted": 26.94,
+      "error": -2.01,
+      "date": "2024-04-13",
+      "station": "R K Puram, Delhi"
+    },
+    {
+      "index": 1443,
+      "observed": 22.41,
+      "predicted": 33.59,
+      "error": 11.18,
+      "date": "2024-04-14",
+      "station": "Punjabi Bagh, Delhi"
+    },
+    {
+      "index": 1454,
+      "observed": 32.63,
+      "predicted": 32.73,
+      "error": 0.1,
+      "date": "2024-04-14",
+      "station": "Wazirpur, Delhi"
+    },
+    {
+      "index": 1465,
+      "observed": 21.52,
+      "predicted": 25.61,
+      "error": 4.09,
+      "date": "2024-04-15",
+      "station": "Sector 51, Gurugram"
+    },
+    {
+      "index": 1476,
+      "observed": 30.82,
+      "predicted": 29.86,
+      "error": -0.96,
+      "date": "2024-04-16",
+      "station": "Jahangirpuri, Delhi"
+    },
+    {
+      "index": 1487,
+      "observed": 28.65,
+      "predicted": 29.72,
+      "error": 1.07,
+      "date": "2024-04-17",
+      "station": "Mandir Marg, Delhi"
+    },
+    {
+      "index": 1499,
+      "observed": 31.11,
+      "predicted": 34.57,
+      "error": 3.46,
+      "date": "2024-04-18",
+      "station": "Punjabi Bagh, Delhi"
+    },
+    {
+      "index": 1510,
+      "observed": 27.41,
+      "predicted": 31.42,
+      "error": 4.01,
+      "date": "2024-04-18",
+      "station": "Rohini Sector 16, Delhi"
+    },
+    {
+      "index": 1521,
+      "observed": 26.24,
+      "predicted": 30.1,
+      "error": 3.86,
+      "date": "2024-04-19",
+      "station": "Sector 51, Gurugram"
+    },
+    {
+      "index": 1532,
+      "observed": 37.48,
+      "predicted": 32.49,
+      "error": -4.99,
+      "date": "2024-04-20",
+      "station": "Jahangirpuri, Delhi"
+    },
+    {
+      "index": 1543,
+      "observed": 26.71,
+      "predicted": 26.56,
+      "error": -0.15,
+      "date": "2024-04-21",
+      "station": "R K Puram, Delhi"
+    },
+    {
+      "index": 1555,
+      "observed": 23.53,
+      "predicted": 26.16,
+      "error": 2.63,
+      "date": "2024-04-22",
+      "station": "Mandir Marg, Delhi"
+    },
+    {
+      "index": 1566,
+      "observed": 34.11,
+      "predicted": 32.73,
+      "error": -1.38,
+      "date": "2024-04-22",
+      "station": "Wazirpur, Delhi"
+    },
+    {
+      "index": 1577,
+      "observed": 20.62,
+      "predicted": 26.16,
+      "error": 5.54,
+      "date": "2024-04-23",
+      "station": "Sector 51, Gurugram"
+    },
+    {
+      "index": 1588,
+      "observed": 35.25,
+      "predicted": 32.49,
+      "error": -2.76,
+      "date": "2024-04-24",
+      "station": "Jahangirpuri, Delhi"
+    },
+    {
+      "index": 1599,
+      "observed": 25.67,
+      "predicted": 27.69,
+      "error": 2.02,
+      "date": "2024-04-25",
+      "station": "IGI Airport (T3), Delhi"
+    },
+    {
+      "index": 1611,
+      "observed": 27.09,
+      "predicted": 30.1,
+      "error": 3.01,
+      "date": "2024-04-26",
+      "station": "Mandir Marg, Delhi"
+    },
+    {
+      "index": 1622,
+      "observed": 26.76,
+      "predicted": 30.9,
+      "error": 4.14,
+      "date": "2024-04-26",
+      "station": "Rohini Sector 16, Delhi"
+    },
+    {
+      "index": 1633,
+      "observed": 17.94,
+      "predicted": 25.61,
+      "error": 7.67,
+      "date": "2024-04-27",
+      "station": "Sector 51, Gurugram"
+    },
+    {
+      "index": 1644,
+      "observed": 39.69,
+      "predicted": 32.79,
+      "error": -6.9,
+      "date": "2024-04-28",
+      "station": "Jahangirpuri, Delhi"
+    },
+    {
+      "index": 1655,
+      "observed": 29.22,
+      "predicted": 32.73,
+      "error": 3.51,
+      "date": "2024-04-29",
+      "station": "Mandir Marg, Delhi"
+    },
+    {
+      "index": 1667,
+      "observed": 28.99,
+      "predicted": 30.65,
+      "error": 1.66,
+      "date": "2024-04-29",
+      "station": "Rohini Sector 16, Delhi"
+    }
+  ],
+  "residual_distribution": {
+    "mean_residual": 0.79,
+    "std_residual": 14.1,
+    "histogram": [
+      {
+        "bin_range": "-68.7 to -57.5",
+        "bin_center": -63.1,
+        "count": 2
+      },
+      {
+        "bin_range": "-57.5 to -46.3",
+        "bin_center": -51.9,
+        "count": 11
+      },
+      {
+        "bin_range": "-46.3 to -35.0",
+        "bin_center": -40.6,
+        "count": 29
+      },
+      {
+        "bin_range": "-35.0 to -23.8",
+        "bin_center": -29.4,
+        "count": 23
+      },
+      {
+        "bin_range": "-23.8 to -12.6",
+        "bin_center": -18.2,
+        "count": 134
+      },
+      {
+        "bin_range": "-12.6 to -1.4",
+        "bin_center": -7.0,
+        "count": 450
+      },
+      {
+        "bin_range": "-1.4 to 9.8",
+        "bin_center": 4.2,
+        "count": 731
+      },
+      {
+        "bin_range": "9.8 to 21.0",
+        "bin_center": 15.4,
+        "count": 169
+      },
+      {
+        "bin_range": "21.0 to 32.2",
+        "bin_center": 26.6,
+        "count": 76
+      },
+      {
+        "bin_range": "32.2 to 43.4",
+        "bin_center": 37.8,
+        "count": 33
+      },
+      {
+        "bin_range": "43.4 to 54.6",
+        "bin_center": 49.0,
+        "count": 5
+      },
+      {
+        "bin_range": "54.6 to 65.8",
+        "bin_center": 60.2,
+        "count": 5
+      }
+    ]
+  },
+  "is_demo": true,
+  "is_active": true
+}
