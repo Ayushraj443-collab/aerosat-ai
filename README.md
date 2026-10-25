@@ -113,19 +113,21 @@ npm run dev
 
 ---
 
-## 5. Automated Testing Verification
+## 5. Automated Testing & Real Data Verification
 
-The backend includes a comprehensive automated test suite testing health, connectors, spatial feature extraction, GroupKFold validation, downscaling uncertainty bounds, and schema validation.
+The backend includes a comprehensive automated test suite testing health, connectors, spatial feature extraction, GroupKFold validation, downscaling uncertainty bounds, live connector requests, and data isolation.
 
 ```bash
 # Run backend tests
 & .\backend\venv\Scripts\pytest.exe .\backend\tests -v
 ```
 
-**Test Results Passed:**
+**Test Suite Coverage (26/26 Tests Passing):**
+- `test_health.py`: Root health, database connectivity, real vs demo record counts
 - `test_data_api.py`: Data source registry, CPCB station queries, paired observations
+- `test_real_connectors.py`: Live Copernicus CDSE OData catalogue discovery, download blocker with setup guide, Open-Meteo ERA5 & BLH, Copernicus CAMS surface air quality, OpenAQ key check, CPCB CSV validation
+- `test_data_isolation.py`: Database partition isolation, API mode filtering (`?mode=real|demo`), prediction mode provenance, untrained pollutant error handling (no fake data), downscaled grid metadata, CSV/GeoJSON exports
 - `test_downscaler.py`: Haversine distance, single-location downscaling with uncertainty bounds, GeoJSON polygon grid generator
-- `test_health.py`: Root health, database connectivity, demo mode status
 - `test_ml_pipeline.py`: GroupKFold cross-validation by station, baseline IDW comparison, feature importances
 - `test_predict_api.py`: Point prediction, domain boundary validation, prediction history, CSV/GeoJSON export
 - `test_upload_validation.py`: Upload validation engine, coordinate boundaries, missing value detection
@@ -136,33 +138,37 @@ The backend includes a comprehensive automated test suite testing health, connec
 
 | Page | Capabilities |
 | :--- | :--- |
-| **A. Overview** | Regional study extent (Delhi-NCR), 5 criteria pollutants ($\text{NO}_2$, $\text{PM}_{2.5}$, $\text{SO}_2$, $\text{CO}$, $\text{O}_3$), CPCB vs WHO guideline comparisons, real vs demo status banner. |
+| **A. Overview** | Regional extent (Delhi-NCR), 5 criteria pollutants ($\text{NO}_2$, $\text{PM}_{2.5}$, $\text{SO}_2$, $\text{CO}$, $\text{O}_3$), live connector statuses, real vs demo status banner. |
 | **B. Interactive Map** | Pan/zoom Leaflet map with CartoDB dark tiles, 1-5 km downscaled polygon grids, station pins with AQI popup badges, uncertainty layer toggle, and missing-data cloud mask. |
 | **C. Prediction Workspace** | Coordinate input with regional monitored presets, target resolution selection, model algorithm chooser, 90% confidence uncertainty intervals, and input provenance logging. |
 | **D. Model Evaluation** | Out-of-fold $R^2$, MAE, RMSE, Mean Bias Error (MBE), baseline IDW comparison (+% accuracy gain), observed vs predicted scatter plot, residual error histogram, and on-demand retraining. |
-| **E. Data Explorer** | CPCB monitor directory, matched observation pairs, registered dataset catalog, and CSV/GeoJSON upload validator with coordinate bounds and column checks. |
+| **E. Data Explorer** | Dual Real / Demo mode observation browser, Live ESA CDSE Sentinel-5P Granule Explorer, CPCB CAAQMS CSV importer, and dataset validation engine. |
 | **F. Research & About** | Physics of planetary boundary layer trapping, mathematical column-to-surface relationship, spatial cross-validation rationale, and academic citations. |
 
 ---
 
 ## 7. Connecting Real Copernicus & CPCB Data
 
-By default, the application runs in a calibrated **Demonstration Mode** using realistic Delhi-NCR station geography and synthetic atmospheric observations. To switch to live feeds:
+The application features two strictly separated operating modes: **REAL DATA** and **DEMO MODE**.
+- **Real Mode:** Uses verified genuine observations from the Copernicus Data Space Ecosystem, Open-Meteo ERA5, Copernicus CAMS, and CPCB CAAQMS ground monitors.
+- **Demo Mode:** Runs deterministic physical simulations for offline demonstrations and academic testing.
 
-1. Register at the **Copernicus Data Space Ecosystem (CDSE)**: [dataspace.copernicus.eu](https://dataspace.copernicus.eu)
-2. Generate an OAuth2 Client ID and Client Secret in your user profile.
-3. Copy `.env.example` to `.env` in the project root:
-   ```env
-   COPERNICUS_CLIENT_ID="your_client_id_here"
-   COPERNICUS_CLIENT_SECRET="your_client_secret_here"
-   OPENAQ_API_KEY="your_openaq_key_here"
-   ```
-4. Restart the backend. The system will automatically switch from simulated feeds to live OData queries.
+### Enabling Authenticated Connectors:
+1. **Copernicus CDSE Sentinel-5P Binary Download:**
+   - OData catalogue search works **publicly without credentials**.
+   - For downloading full NetCDF files, register at [dataspace.copernicus.eu](https://dataspace.copernicus.eu), generate OAuth2 credentials in your user profile, and add `COPERNICUS_CLIENT_ID` and `COPERNICUS_CLIENT_SECRET` in `backend/.env`.
+2. **CPCB Ground Data:**
+   - Download official station reports directly from the Central Pollution Control Board CCR portal: [app.cpcbccr.com/ccr](https://app.cpcbccr.com/ccr/).
+   - Import the CSV in the **Data Explorer** tab. The system validates headers, coordinates, and physical bounds and ingests them with `data_mode='REAL'`.
+3. **OpenAQ v3 API:**
+   - Register for a free community API key at [openaq.org](https://openaq.org) and add `OPENAQ_API_KEY` in `backend/.env`.
 
 ---
 
 ## 8. Documentation Index
 
+- [Real Data Audit & Verification Report](docs/REAL_DATA_AUDIT.md)
+- [Real Data Implementation Plan](docs/REAL_DATA_IMPLEMENTATION_PLAN.md)
 - [Full University Project Report](docs/PROJECT_REPORT.md)
 - [Downscaling & ML Methodology](docs/METHODOLOGY.md)
 - [REST API Reference](docs/API.md)

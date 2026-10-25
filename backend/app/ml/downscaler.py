@@ -56,21 +56,32 @@ def estimate_single_location(
     date_str: str,
     pollutant: str = "NO2",
     target_resolution_km: float = 1.0,
-    model_algorithm: str = "random_forest"
+    model_algorithm: str = "random_forest",
+    data_mode: str = "DEMO"
 ) -> Dict[str, Any]:
     """
     Predict ground-level pollutant concentration at a specific point with defensible uncertainty
     and transparent input-data provenance.
     """
     p = pollutant.upper()
-    model, meta = get_active_model(p)
+    mode = data_mode.upper()
+    model, meta = get_active_model(p, data_mode=mode)
     
-    # If no model trained yet, train an initial baseline/RF model on the demo dataset automatically
+    # If no model trained yet
     if model is None:
-        from app.ml.pipeline import SpatialMLPipeline
-        pipeline = SpatialMLPipeline(pollutant=p, algorithm=model_algorithm)
-        meta = pipeline.train_and_evaluate(n_estimators=60, max_depth=10)
-        model = pipeline.model
+        if mode == "REAL":
+            from app.ml.pipeline import SpatialMLPipeline
+            try:
+                pipeline = SpatialMLPipeline(pollutant=p, algorithm=model_algorithm, data_mode="REAL")
+                meta = pipeline.train_and_evaluate(n_estimators=60, max_depth=10, spatial_cv_folds=5)
+                model = pipeline.model
+            except Exception as e:
+                raise ValueError(f"NO_VERIFIED_REAL_MODEL: Cannot predict in REAL mode without a verified real-data model. Details: {e}")
+        else:
+            from app.ml.pipeline import SpatialMLPipeline
+            pipeline = SpatialMLPipeline(pollutant=p, algorithm=model_algorithm, data_mode="DEMO")
+            meta = pipeline.train_and_evaluate(n_estimators=60, max_depth=10)
+            model = pipeline.model
 
     # Date parsing & seasonal components
     try:
@@ -207,7 +218,8 @@ def estimate_single_location(
             "distance_to_station_km": nearest_dist,
             "elevation_m": elevation,
             "road_density_proxy": road_proxy,
-            "is_demo": True,
+            "is_demo": mode == "DEMO",
+            "data_mode": mode,
             "scientific_disclaimer": (
                 "IMPORTANT SCIENTIFIC LIMITATION: Sentinel-5P pixels (~5.5x3.5 km) measure atmospheric columns. "
                 "Downscaled values are statistical model estimates incorporating meteorology, elevation, and land covariates. "
@@ -223,19 +235,30 @@ def generate_downscaled_grid_geojson(
     max_lon: float,
     date_str: str,
     pollutant: str = "NO2",
-    resolution_km: float = 2.0
+    resolution_km: float = 2.0,
+    data_mode: str = "DEMO"
 ) -> Dict[str, Any]:
     """
     Generate fine-resolution spatial grid of downscaled predictions as a standard GeoJSON FeatureCollection.
     Includes cell polygon geometries, estimated values, uncertainty, and cloud/missingness masks.
     """
     p = pollutant.upper()
-    model, meta = get_active_model(p)
+    mode = data_mode.upper()
+    model, meta = get_active_model(p, data_mode=mode)
     if model is None:
-        from app.ml.pipeline import SpatialMLPipeline
-        pipeline = SpatialMLPipeline(pollutant=p, algorithm="random_forest")
-        meta = pipeline.train_and_evaluate(n_estimators=50, max_depth=10)
-        model = pipeline.model
+        if mode == "REAL":
+            from app.ml.pipeline import SpatialMLPipeline
+            try:
+                pipeline = SpatialMLPipeline(pollutant=p, algorithm="random_forest", data_mode="REAL")
+                meta = pipeline.train_and_evaluate(n_estimators=50, max_depth=10, spatial_cv_folds=5)
+                model = pipeline.model
+            except Exception as e:
+                raise ValueError(f"NO_VERIFIED_REAL_MODEL: No trained model available for REAL data mode. Details: {e}")
+        else:
+            from app.ml.pipeline import SpatialMLPipeline
+            pipeline = SpatialMLPipeline(pollutant=p, algorithm="random_forest", data_mode="DEMO")
+            meta = pipeline.train_and_evaluate(n_estimators=50, max_depth=10)
+            model = pipeline.model
         
     grid_cells = generate_spatial_grid(min_lat, max_lat, min_lon, max_lon, resolution_km)
     
@@ -368,7 +391,9 @@ def generate_downscaled_grid_geojson(
             "model_version": meta.get("model_id", "active"),
             "model_r2": meta.get("r2", 0.85),
             "crs": "EPSG:4326 (WGS84)",
-            "is_demo": True,
+            "is_demo": mode == "DEMO",
+            "data_mode": mode,
+            "source_provenance": "Copernicus S5P & CAMS Real Model" if mode == "REAL" else "AeroSat Synthetic Simulation Model",
             "scientific_disclaimer": "Fine-resolution estimates generated via spatial machine learning model. Displayed with uncertainty bounds and missing-data flags."
         },
         "features": features

@@ -13,6 +13,7 @@ def get_health():
     for meta_file in settings.DATA_MODELS_DIR.glob("*_meta.json"):
         loaded_models.append(meta_file.stem.replace("_meta", ""))
         
+    from app.database import count_observations
     return {
         "status": "healthy",
         "timestamp": datetime.now().isoformat(),
@@ -23,6 +24,8 @@ def get_health():
         "storage_status": {
             "database_exists": settings.DATABASE_PATH.exists(),
             "raw_dir_exists": settings.DATA_RAW_DIR.exists(),
-            "models_dir_exists": settings.DATA_MODELS_DIR.exists()
+            "models_dir_exists": settings.DATA_MODELS_DIR.exists(),
+            "real_observations_count": count_observations("REAL"),
+            "demo_observations_count": count_observations("DEMO")
         }
     }

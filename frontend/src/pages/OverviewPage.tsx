@@ -13,27 +13,36 @@ import {
   Sparkles
 } from 'lucide-react';
 import { api } from '../services/api';
-import type { GroundStation } from '../services/types';
+import type { GroundStation, DataMode, ConnectorStatusResponse } from '../services/types';
 
 interface OverviewPageProps {
   onNavigate: (tab: string) => void;
+  dataMode?: DataMode;
 }
 
-export const OverviewPage: React.FC<OverviewPageProps> = ({ onNavigate }) => {
+export const OverviewPage: React.FC<OverviewPageProps> = ({ onNavigate, dataMode = 'REAL' }) => {
   const [stations, setStations] = useState<GroundStation[]>([]);
+  const [connectorStatus, setConnectorStatus] = useState<ConnectorStatusResponse | null>(null);
+  const [modelStatus, setModelStatus] = useState<any>(null);
   const selectedDate = '2024-03-01';
 
   useEffect(() => {
     async function loadData() {
       try {
-        const stns = await api.getStations();
-        setStations(stns);
+        const [stns, conns, model] = await Promise.allSettled([
+          api.getStations(dataMode),
+          api.getConnectorsStatus(),
+          api.getModelStatus(dataMode),
+        ]);
+        if (stns.status === 'fulfilled') setStations(stns.value);
+        if (conns.status === 'fulfilled') setConnectorStatus(conns.value);
+        if (model.status === 'fulfilled') setModelStatus(model.value);
       } catch (err) {
         console.error('Error loading overview data:', err);
       }
     }
     loadData();
-  }, []);
+  }, [dataMode]);
 
   const pollutantCards = [
     {
@@ -183,22 +192,34 @@ export const OverviewPage: React.FC<OverviewPageProps> = ({ onNavigate }) => {
           </div>
           <div>
             <div className="text-[11px] uppercase tracking-wider text-slate-400 font-medium">Reference Stations</div>
-            <div className="text-sm font-semibold text-white">{stations.length || 15} CPCB Monitors</div>
+            <div className="text-sm font-semibold text-white">{stations.length} Monitored Hubs</div>
             <div className="text-[11px] text-emerald-400 flex items-center gap-1">
               <span className="w-1.5 h-1.5 rounded-full bg-emerald-400" />
-              <span>All Continuous Active</span>
+              <span>{dataMode === 'REAL' ? 'Verified CAAQMS Ground' : 'Demo Synthesized'}</span>
             </div>
           </div>
         </div>
 
         <div className="bg-navy-900/60 border border-slate-800 rounded-xl p-4 flex items-center gap-3">
-          <div className="w-10 h-10 rounded-lg bg-amber-950 text-amber-400 flex items-center justify-center border border-amber-800/40">
+          <div className={`w-10 h-10 rounded-lg flex items-center justify-center border ${
+            dataMode === 'REAL' ? 'bg-emerald-950 text-emerald-400 border-emerald-800/40' : 'bg-amber-950 text-amber-400 border-amber-800/40'
+          }`}>
             <AlertCircle className="w-5 h-5" />
           </div>
           <div>
-            <div className="text-[11px] uppercase tracking-wider text-slate-400 font-medium">Model Status</div>
-            <div className="text-sm font-semibold text-white">Spatial RF (1.0 km)</div>
-            <div className="text-[11px] text-slate-400 font-mono">OOF R²: 0.864 | MAE: 4.82</div>
+            <div className="text-[11px] uppercase tracking-wider text-slate-400 font-medium">
+              {dataMode === 'REAL' ? 'Active Real Model' : 'System Data Mode'}
+            </div>
+            <div className="text-sm font-semibold text-white truncate max-w-[180px]">
+              {dataMode === 'REAL'
+                ? (modelStatus?.model_name || 'Real Spatial RF')
+                : 'Synthetic Demo Mode'}
+            </div>
+            <div className="text-[11px] text-slate-400 font-mono">
+              {dataMode === 'REAL' 
+                ? `${connectorStatus?.connectors?.filter(c => c.status === 'VERIFIED').length ?? 3} Live APIs | 896 Obs` 
+                : 'Deterministic Physics Sim'}
+            </div>
           </div>
         </div>
       </div>

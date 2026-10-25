@@ -34,3 +34,5 @@ data/processed/
 Thumbs.db
 .vscode/
 .idea/
+scratch/
+data/models/*.json

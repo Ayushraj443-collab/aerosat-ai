@@ -89,4 +89,24 @@ To demonstrate that the satellite-meteorological fusion pipeline adds genuine pr
 $$\hat{y}_{\text{IDW}}(\mathbf{x}) = \frac{\sum_{i=1}^M w_i y_i}{\sum_{i=1}^M w_i}, \quad w_i = \frac{1}{d(\mathbf{x}, \mathbf{x}_i)^p}$$
 
 Where $d(\mathbf{x}, \mathbf{x}_i)$ is the great-circle Haversine distance, and $p=2.0$.
-In all evaluated species, the AeroSat-AI model achieves $29\% - 35\%$ lower MAE than the IDW baseline.
+In all evaluated species, the AeroSat-AI model achieves significantly lower MAE than the IDW baseline, demonstrating that spaceborne trace gas columns and numerical weather covariates provide physical predictive information unavailable from spatial distance alone.
+
+---
+
+## 6. Spatiotemporal Collocation & Matching Protocol
+
+Satellite and ground stations do not observe at identical times or exact point locations. Spatiotemporal matching enforces strict physical collocation tolerances:
+
+1. **Temporal Matching Window:** $|\Delta t| \le 3.0\text{ hours}$. TROPOMI overpass occurs at $\approx 13:30$ local solar time (early afternoon). Ground observations within $\pm 3\text{h}$ are collocated with the overpass.
+2. **Spatial Distance Window:** $\Delta d \le 5.0\text{ km}$ Haversine distance, matching the native ground pixel size of Sentinel-5P ($5.5 \times 3.5\text{ km}$).
+3. **Retrieval Quality Filtering:** $\text{QA} \ge 0.50$ (excludes cloud fraction $> 0.5$, high aerosol optical thickness anomalies, and snow/ice reflection).
+4. **Physical Unit Preservation:** Column densities ($mol/m^2$ or $molec/cm^2$) and surface mass concentrations ($\mu g/m^3$) are preserved in their native physical units and explicitly differentiated in all database tables and outputs.
+5. **Missing Value Integrity:** If valid satellite pixels or ground observations are absent for a given window, missing values are flagged (`is_data_gap=true`, `gap_reason`) rather than manufactured.
+
+---
+
+## 7. Downscaling Resolution & Scientific Boundaries
+
+- **Target Prediction Grid:** $1.0\text{ km} - 5.0\text{ km}$ resolution on EPSG:4326.
+- **Physical Boundary Limitation:** While model downscaling produces a finer regularized grid from coarse satellite pixels ($5.5 \times 3.5\text{ km}$), **it is not a substitute for direct micro-sensor networks**. Claiming street-level ($< 100\text{ m}$) accuracy without dense localized ground micro-sensors or computational fluid dynamics (CFD) canyon modeling is scientifically unsupportable. AeroSat-AI clearly labels downscaled outputs as model estimates with associated $90\%$ tree-ensemble confidence bounds.
+

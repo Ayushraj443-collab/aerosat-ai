@@ -18,8 +18,8 @@ The backend test suite is configured via `backend/pytest.ini` and executed again
 | Test File | Test Name | Purpose | Result |
 | :--- | :--- | :--- | :---: |
 | `test_health.py` | `test_root` | Verifies root `/` service summary and docs link | **PASSED** |
-| `test_health.py` | `test_health_endpoint` | Verifies `/api/health`, DB status, and demo mode flag | **PASSED** |
-| `test_data_api.py` | `test_get_data_sources` | Validates registration of all 4 data source connectors | **PASSED** |
+| `test_health.py` | `test_health_endpoint` | Verifies `/api/health`, DB status, real vs demo record counts | **PASSED** |
+| `test_data_api.py` | `test_get_data_sources` | Validates registration of all data source connectors | **PASSED** |
 | `test_data_api.py` | `test_get_stations` | Validates Delhi-NCR CPCB monitoring station coordinates | **PASSED** |
 | `test_data_api.py` | `test_get_observations` | Tests paired observation filtering by date and pollutant | **PASSED** |
 | `test_ml_pipeline.py` | `test_spatial_ml_pipeline_training` | Validates feature matrix extraction, GroupKFold station splitting, and metrics | **PASSED** |
@@ -30,8 +30,21 @@ The backend test suite is configured via `backend/pytest.ini` and executed again
 | `test_predict_api.py` | `test_predict_out_of_bounds_coordinate` | Tests rejection (422) for coordinates outside India | **PASSED** |
 | `test_upload_validation.py` | `test_upload_valid_csv` | Tests successful CSV upload and schema extraction | **PASSED** |
 | `test_upload_validation.py` | `test_upload_missing_coordinates_csv` | Verifies rejection of CSV missing lat/lon columns | **PASSED** |
+| `test_real_connectors.py` | `test_sentinel5p_catalogue_discovery` | Verifies live ESA Copernicus CDSE OData catalogue discovery | **PASSED** |
+| `test_real_connectors.py` | `test_sentinel5p_download_blocked_without_credentials` | Verifies authenticated download reports BLOCKED with setup guide | **PASSED** |
+| `test_real_connectors.py` | `test_open_meteo_weather_connector` | Verifies live ERA5 historical weather & forecast boundary layer height | **PASSED** |
+| `test_real_connectors.py` | `test_copernicus_cams_air_quality_connector` | Verifies live Copernicus CAMS surface PM2.5 and NO2 observations | **PASSED** |
+| `test_real_connectors.py` | `test_openaq_connector_status` | Verifies OpenAQ v3 reports BLOCKED when API key is missing | **PASSED** |
+| `test_real_connectors.py` | `test_cpcb_csv_importer_valid` | Verifies standardized CPCB CCR CSV ingestion and validation | **PASSED** |
+| `test_real_connectors.py` | `test_cpcb_csv_importer_missing_columns` | Verifies rejection of malformed files missing required headers | **PASSED** |
+| `test_data_isolation.py` | `test_database_isolation` | Verifies REAL and DEMO records are cleanly partitioned in DB | **PASSED** |
+| `test_data_isolation.py` | `test_api_observations_mode_filtering` | Verifies `/api/data/observations?mode=real|demo` isolation | **PASSED** |
+| `test_data_isolation.py` | `test_prediction_api_mode_isolation` | Verifies `/api/predict` respects data_mode and logs provenance | **PASSED** |
+| `test_data_isolation.py` | `test_unsupported_pollutant_real_mode_error` | Verifies untrained pollutant in REAL mode returns 400 (no fake data) | **PASSED** |
+| `test_data_isolation.py` | `test_downscaled_grid_mode_parameter` | Verifies `/api/map/downscaled-grid` reflects data_mode in metadata | **PASSED** |
+| `test_data_isolation.py` | `test_prediction_export_formats` | Verifies CSV and GeoJSON prediction export downloads | **PASSED** |
 
-**Summary:** 13/13 unit and integration tests passed in 1.89 seconds.
+**Summary:** 26/26 unit, integration, and live connector tests passed in 19.77 seconds.
 
 ---
 

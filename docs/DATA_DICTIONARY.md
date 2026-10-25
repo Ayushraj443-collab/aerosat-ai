@@ -123,7 +123,62 @@ CREATE TABLE model_registry (
     baseline_r2 REAL,
     is_active INTEGER NOT NULL DEFAULT 1,
     is_demo INTEGER NOT NULL DEFAULT 1,
+    data_mode TEXT NOT NULL DEFAULT 'DEMO', -- 'REAL' or 'DEMO'
     hyperparams_json TEXT,
     feature_names_json TEXT
 );
 ```
+
+### Table: `observations`
+Stores individual ground-station and matched satellite observation pairs with complete scientific provenance.
+
+```sql
+CREATE TABLE observations (
+    id TEXT PRIMARY KEY,               -- e.g. CPCB_ANAND_VIHAR_NO2_2024011012
+    data_mode TEXT NOT NULL,           -- 'REAL' or 'DEMO'
+    source_name TEXT NOT NULL,         -- e.g. 'CPCB CAAQMS Official Network'
+    source_product TEXT NOT NULL,      -- e.g. 'CAAQMS In-Situ Monitor'
+    source_record_id TEXT,             -- Original upstream ID or row reference
+    observation_time TEXT NOT NULL,    -- ISO8601 acquisition timestamp
+    retrieved_at TEXT NOT NULL,        -- Ingestion ISO8601 timestamp
+    station_id TEXT,                   -- Station identifier
+    station_name TEXT,                 -- Human-readable shelter name
+    latitude REAL NOT NULL,            -- Decimal degrees (°N)
+    longitude REAL NOT NULL,           -- Decimal degrees (°E)
+    pollutant TEXT NOT NULL,           -- Target pollutant species
+    ground_value REAL NOT NULL,        -- Surface mass concentration
+    unit TEXT NOT NULL,                -- µg/m³ or mg/m³
+    satellite_column REAL,             -- Spaceborne column density
+    satellite_qa REAL,                 -- Satellite retrieval QA flag (0-1)
+    temperature_c REAL,                -- Ambient temperature (°C)
+    relative_humidity_pct REAL,        -- Relative humidity (%)
+    wind_speed_ms REAL,                -- Horizontal wind speed (m/s)
+    wind_direction_deg REAL,           -- Wind direction (degrees)
+    boundary_layer_height_m REAL,      -- Planetary boundary layer height (m)
+    elevation_m REAL,                  -- Surface elevation MSL (m)
+    road_density_proxy REAL,           -- Proximity-weighted road index
+    quality_flag REAL DEFAULT 1.0,     -- Validation flag (1.0 = valid)
+    dataset_version TEXT               -- Upstream product or release version
+);
+```
+
+### Table: `connector_status`
+Tracks live API health, authentication states, record counts, and errors for genuine data connectors.
+
+```sql
+CREATE TABLE connector_status (
+    connector_id TEXT PRIMARY KEY,     -- e.g. 'sentinel-5p-catalogue'
+    name TEXT NOT NULL,                -- Connector human name
+    category TEXT NOT NULL,            -- 'satellite', 'ground', or 'meteorology'
+    status TEXT NOT NULL,              -- 'VERIFIED', 'IMPLEMENTED_BUT_UNVERIFIED', 'BLOCKED', 'FAILED'
+    endpoint_url TEXT NOT NULL,        -- Primary endpoint
+    auth_required INTEGER NOT NULL,    -- 1 if API requires token/key, 0 if public
+    auth_configured INTEGER NOT NULL,  -- 1 if credentials present in environment
+    last_queried_at TEXT,              -- Last probe timestamp
+    record_count INTEGER DEFAULT 0,    -- Retrieved observation count
+    sample_record_json TEXT,           -- Diagnostic payload sample
+    last_error TEXT,                   -- Error message if probe failed
+    notes TEXT                         -- Diagnostic notes & setup instructions
+);
+```
+

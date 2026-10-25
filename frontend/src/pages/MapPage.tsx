@@ -10,13 +10,14 @@ import {
   AlertTriangle
 } from 'lucide-react';
 import { api } from '../services/api';
-import type { GroundStation, GeoJsonGridCollection } from '../services/types';
+import type { GroundStation, GeoJsonGridCollection, DataMode } from '../services/types';
 
 interface MapPageProps {
   onSelectCoordinateForPrediction?: (lat: number, lon: number, pollutant: string) => void;
+  dataMode?: DataMode;
 }
 
-export const MapPage: React.FC<MapPageProps> = ({ onSelectCoordinateForPrediction }) => {
+export const MapPage: React.FC<MapPageProps> = ({ onSelectCoordinateForPrediction, dataMode = 'REAL' }) => {
   const mapContainerRef = useRef<HTMLDivElement>(null);
   const mapInstanceRef = useRef<L.Map | null>(null);
   const stationsLayerRef = useRef<L.LayerGroup | null>(null);
@@ -35,6 +36,7 @@ export const MapPage: React.FC<MapPageProps> = ({ onSelectCoordinateForPredictio
   const [showCloudMask, setShowCloudMask] = useState<boolean>(true);
 
   const [loading, setLoading] = useState<boolean>(false);
+  const [gridError, setGridError] = useState<string | null>(null);
   const [selectedCellInfo, setSelectedCellInfo] = useState<any | null>(null);
   const [clickedCoord, setClickedCoord] = useState<{ lat: number; lon: number } | null>(null);
 
@@ -76,38 +78,41 @@ export const MapPage: React.FC<MapPageProps> = ({ onSelectCoordinateForPredictio
     };
   }, []);
 
-  // Fetch Stations on mount
+  // Fetch Stations on mount and mode change
   useEffect(() => {
     async function loadStations() {
       try {
-        const stns = await api.getStations();
+        const stns = await api.getStations(dataMode);
         setStations(stns);
       } catch (err) {
         console.error('Failed to load stations:', err);
       }
     }
     loadStations();
-  }, []);
+  }, [dataMode]);
 
-  // Fetch Downscaled Grid when filters change
+  // Fetch Downscaled Grid when filters or dataMode change
   useEffect(() => {
     async function loadGrid() {
       try {
         setLoading(true);
+        setGridError(null);
         const data = await api.getDownscaledGrid({
+          mode: dataMode,
           pollutant: selectedPollutant,
           resolution_km: selectedResolution,
           date: selectedDate,
         });
         setGridData(data);
-      } catch (err) {
+      } catch (err: any) {
         console.error('Failed to load downscaled grid:', err);
+        setGridError(err.message || 'Failed to load grid');
       } finally {
         setLoading(false);
       }
     }
     loadGrid();
-  }, [selectedPollutant, selectedResolution, selectedDate]);
+  }, [selectedPollutant, selectedResolution, selectedDate, dataMode]);
 
   // Color ramp for concentrations
   const getConcentrationColor = (val: number | null, pollutant: string): string => {
@@ -337,7 +342,16 @@ export const MapPage: React.FC<MapPageProps> = ({ onSelectCoordinateForPredictio
         </div>
 
         {/* Layer Toggles & Mode */}
-        <div className="flex items-center gap-2">
+        <div className="flex flex-wrap items-center gap-2">
+          <div className={`px-2.5 py-1 rounded-md text-xs font-mono font-bold flex items-center gap-1.5 border ${
+            dataMode === 'REAL'
+              ? 'bg-emerald-950/70 border-emerald-500/40 text-emerald-300'
+              : 'bg-amber-950/70 border-amber-500/40 text-amber-300'
+          }`}>
+            <span className={`w-2 h-2 rounded-full ${dataMode === 'REAL' ? 'bg-emerald-400 animate-pulse' : 'bg-amber-400'}`} />
+            <span>{dataMode === 'REAL' ? 'REAL SCIENTIFIC GRID' : 'DEMO GRID (SIMULATED)'}</span>
+          </div>
+
           <button
             onClick={() => setShowStations(!showStations)}
             className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium border transition-colors ${
@@ -386,6 +400,13 @@ export const MapPage: React.FC<MapPageProps> = ({ onSelectCoordinateForPredictio
           </button>
         </div>
       </div>
+
+      {gridError && (
+        <div className="p-3 bg-rose-950/70 border border-rose-600/40 rounded-xl text-xs text-rose-300 flex items-center gap-2">
+          <AlertTriangle className="w-4 h-4 flex-shrink-0 text-rose-400" />
+          <span>{gridError}</span>
+        </div>
+      )}
 
       {/* Main Map Container */}
       <div className="relative rounded-2xl overflow-hidden border border-slate-800 bg-slate-950 h-[580px] shadow-2xl">

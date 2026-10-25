@@ -28,23 +28,29 @@ def execute_prediction(req: PredictionRequest):
             detail=f"Coordinate ({req.latitude}, {req.longitude}) is outside the regional domain of the trained model (India: lat 20-35°N, lon 68-90°E). Please select a coordinate within the supported regional extent."
         )
         
-    result = estimate_single_location(
-        lat=req.latitude,
-        lon=req.longitude,
-        date_str=req.date,
-        pollutant=req.pollutant,
-        target_resolution_km=req.target_resolution_km,
-        model_algorithm=req.model_algorithm or "random_forest"
-    )
+    data_mode = req.data_mode.upper() if hasattr(req, "data_mode") and req.data_mode else "DEMO"
+    try:
+        result = estimate_single_location(
+            lat=req.latitude,
+            lon=req.longitude,
+            date_str=req.date,
+            pollutant=req.pollutant,
+            target_resolution_km=req.target_resolution_km,
+            model_algorithm=req.model_algorithm or "random_forest",
+            data_mode=data_mode
+        )
+    except ValueError as ve:
+        raise HTTPException(status_code=400, detail=str(ve))
     
+    is_demo_val = 0 if data_mode == "REAL" else 1
     # Save into SQLite history
     with db_session() as conn:
         cursor = conn.cursor()
         cursor.execute("""
         INSERT INTO predictions_history (
             id, timestamp, latitude, longitude, date, pollutant, target_resolution,
-            estimated_value, unit, uncertainty_lower, uncertainty_upper, model_version, is_demo, provenance_json
-        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+            estimated_value, unit, uncertainty_lower, uncertainty_upper, model_version, is_demo, data_mode, provenance_json
+        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
         """, (
             result["prediction_id"],
             result["timestamp"],
@@ -58,20 +64,29 @@ def execute_prediction(req: PredictionRequest):
             result["uncertainty"]["lower_bound_90ci"],
             result["uncertainty"]["upper_bound_90ci"],
             result["model_info"]["model_id"],
-            1,
+            is_demo_val,
+            data_mode,
             json.dumps(result["provenance"])
         ))
         
     return result
 
 @router.get("/predictions/history")
-def get_prediction_history(limit: int = Query(25, ge=1, le=100)):
-    """Retrieve history of user-executed predictions from the database."""
+def get_prediction_history(
+    limit: int = Query(25, ge=1, le=100),
+    mode: Optional[str] = Query(None, description="'real' or 'demo'")
+):
+    """Retrieve history of user-executed predictions from the database, optionally filtered by mode."""
     with db_session() as conn:
         cursor = conn.cursor()
-        cursor.execute("""
-        SELECT * FROM predictions_history ORDER BY timestamp DESC LIMIT ?
-        """, (limit,))
+        if mode:
+            cursor.execute("""
+            SELECT * FROM predictions_history WHERE UPPER(data_mode) = ? ORDER BY timestamp DESC LIMIT ?
+            """, (mode.upper(), limit))
+        else:
+            cursor.execute("""
+            SELECT * FROM predictions_history ORDER BY timestamp DESC LIMIT ?
+            """, (limit,))
         rows = cursor.fetchall()
         
     history = []

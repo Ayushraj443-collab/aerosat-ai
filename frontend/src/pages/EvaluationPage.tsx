@@ -20,9 +20,13 @@ import {
   ReferenceLine
 } from 'recharts';
 import { api } from '../services/api';
-import type { ModelMetricsResponse } from '../services/types';
+import type { ModelMetricsResponse, DataMode } from '../services/types';
 
-export const EvaluationPage: React.FC = () => {
+interface EvaluationPageProps {
+  dataMode?: DataMode;
+}
+
+export const EvaluationPage: React.FC<EvaluationPageProps> = ({ dataMode = 'REAL' }) => {
   const [selectedPollutant, setSelectedPollutant] = useState<string>('NO2');
   const [metrics, setMetrics] = useState<ModelMetricsResponse | null>(null);
   const [loading, setLoading] = useState<boolean>(true);
@@ -34,12 +38,12 @@ export const EvaluationPage: React.FC = () => {
 
   useEffect(() => {
     loadMetrics();
-  }, [selectedPollutant]);
+  }, [selectedPollutant, dataMode]);
 
   async function loadMetrics() {
     try {
       setLoading(true);
-      const res = await api.getModelMetrics(selectedPollutant);
+      const res = await api.getModelMetrics(selectedPollutant, dataMode);
       setMetrics(res);
     } catch (err) {
       console.error('Failed to load metrics:', err);
@@ -58,6 +62,7 @@ export const EvaluationPage: React.FC = () => {
         n_estimators: Number(trainTrees),
         max_depth: Number(trainDepth),
         spatial_cv_folds: Number(trainFolds),
+        data_mode: dataMode,
       });
       setMetrics(res);
     } catch (err: any) {
@@ -72,12 +77,26 @@ export const EvaluationPage: React.FC = () => {
       {/* Header & Pollutant Switcher */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-slate-800 pb-5">
         <div>
-          <h1 className="text-2xl font-bold tracking-tight text-white flex items-center gap-2.5">
-            <BarChart3 className="w-6 h-6 text-cyan-400" />
-            <span>Model Evaluation & Spatial Validation</span>
-          </h1>
-          <p className="text-xs text-slate-400 mt-1">
-            Out-of-fold spatial cross-validation metrics, residual distributions, and baseline comparisons against spatial interpolation.
+          <div className="flex items-center gap-2 mb-1">
+            <h1 className="text-2xl font-bold tracking-tight text-white flex items-center gap-2.5">
+              <BarChart3 className="w-6 h-6 text-cyan-400" />
+              <span>Model Evaluation & Spatial Validation</span>
+            </h1>
+            {dataMode === 'REAL' ? (
+              <span className="px-2.5 py-0.5 rounded-full text-[10px] font-extrabold uppercase tracking-wider bg-emerald-500/10 text-emerald-400 border border-emerald-500/30 flex items-center gap-1">
+                <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
+                Real Model
+              </span>
+            ) : (
+              <span className="px-2.5 py-0.5 rounded-full text-[10px] font-extrabold uppercase tracking-wider bg-amber-500/10 text-amber-400 border border-amber-500/30">
+                Demo Model
+              </span>
+            )}
+          </div>
+          <p className="text-xs text-slate-400">
+            {dataMode === 'REAL'
+              ? 'Trained and validated on verified real CPCB stations & Copernicus atmospheric datasets with GroupKFold spatial holdout.'
+              : 'Demonstration spatial model trained on multi-station synthetic air quality scenarios.'}
           </p>
         </div>
 

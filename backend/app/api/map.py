@@ -65,6 +65,7 @@ def get_map_layers():
 
 @router.get("/downscaled-grid")
 def get_downscaled_grid(
+    mode: str = Query("demo", description="Data mode: 'real' or 'demo'"),
     date: Optional[str] = Query(None, description="Observation date (YYYY-MM-DD)"),
     pollutant: str = Query("NO2", description="Pollutant: NO2, PM2.5, SO2, CO, O3"),
     resolution_km: float = Query(2.0, ge=0.5, le=10.0, description="Target grid resolution in kilometers"),
@@ -75,7 +76,7 @@ def get_downscaled_grid(
 ) -> Dict[str, Any]:
     """
     Generate and stream a GeoJSON FeatureCollection of fine-resolution downscaled pollutant estimates.
-    Includes cell boundaries, point estimates, uncertainty limits, and missing-data flags.
+    Includes cell boundaries, point estimates, uncertainty limits, missing-data flags, and data_mode provenance.
     """
     p = pollutant.upper()
     if p not in settings.SUPPORTED_POLLUTANTS:
@@ -97,14 +98,17 @@ def get_downscaled_grid(
     if bbox_min_lat >= bbox_max_lat or bbox_min_lon >= bbox_max_lon:
         raise HTTPException(status_code=400, detail="Invalid bounding box coordinates: min must be strictly less than max.")
         
-    geojson_grid = generate_downscaled_grid_geojson(
-        min_lat=bbox_min_lat,
-        max_lat=bbox_max_lat,
-        min_lon=bbox_min_lon,
-        max_lon=bbox_max_lon,
-        date_str=date_str,
-        pollutant=p,
-        resolution_km=resolution_km
-    )
-    
-    return geojson_grid
+    try:
+        geojson_grid = generate_downscaled_grid_geojson(
+            min_lat=bbox_min_lat,
+            max_lat=bbox_max_lat,
+            min_lon=bbox_min_lon,
+            max_lon=bbox_max_lon,
+            date_str=date_str,
+            pollutant=p,
+            resolution_km=resolution_km,
+            data_mode=mode
+        )
+        return geojson_grid
+    except ValueError as ve:
+        raise HTTPException(status_code=400, detail=str(ve))

@@ -1,6 +1,11 @@
 from pydantic import BaseModel, Field, field_validator
 from typing import List, Dict, Any, Optional
 from datetime import date as DateType
+from enum import Enum
+
+class DataMode(str, Enum):
+    REAL = "REAL"
+    DEMO = "DEMO"
 
 class HealthResponse(BaseModel):
     status: str
@@ -17,7 +22,7 @@ class DataSourceInfo(BaseModel):
     description: str
     category: str  # satellite | ground | meteorology | geographic
     product: str
-    status: str    # active | simulated | requires_credentials
+    status: str    # VERIFIED | IMPLEMENTED_BUT_UNVERIFIED | BLOCKED | FAILED | active
     spatial_coverage: str
     native_resolution: str
     temporal_frequency: str
@@ -37,6 +42,7 @@ class GroundStation(BaseModel):
     operational_status: str
     latest_reading: Optional[Dict[str, Any]] = None
     is_demo: bool = True
+    data_mode: str = "DEMO"
 
 class ObservationRecord(BaseModel):
     date: str
@@ -57,6 +63,61 @@ class ObservationRecord(BaseModel):
     elevation_m: float
     road_density_proxy: float
     is_demo: bool = True
+    # Scientific Provenance Fields
+    data_mode: str = "DEMO"
+    source_name: str = "Synthetic Simulation Generator"
+    source_product: str = "Simulated Matched Observations"
+    source_record_id: Optional[str] = None
+    observation_time: Optional[str] = None
+    retrieved_at: Optional[str] = None
+    quality_flag: float = 1.0
+    dataset_version: Optional[str] = "1.0"
+
+class ConnectorStatusItem(BaseModel):
+    connector_id: str
+    name: str
+    category: str  # satellite | ground | meteorology
+    status: str    # VERIFIED | IMPLEMENTED_BUT_UNVERIFIED | BLOCKED | FAILED
+    endpoint_url: str
+    auth_required: bool
+    auth_configured: bool
+    last_queried_at: Optional[str] = None
+    record_count: int = 0
+    sample_record: Optional[Dict[str, Any]] = None
+    last_error: Optional[str] = None
+    notes: str
+
+class ConnectorStatusResponse(BaseModel):
+    timestamp: str
+    connectors: List[ConnectorStatusItem]
+
+class Sentinel5PProductItem(BaseModel):
+    product_id: str
+    granule_name: str
+    pollutant: str
+    acquisition_start: str
+    acquisition_end: str
+    content_length_bytes: int
+    footprint_wkt: Optional[str] = None
+    online_status: str
+
+class Sentinel5PQueryRequest(BaseModel):
+    pollutant: str = "NO2"
+    min_lat: float = 28.30
+    max_lat: float = 28.88
+    min_lon: float = 76.90
+    max_lon: float = 77.45
+    start_date: str = "2024-01-01"
+    end_date: str = "2024-01-10"
+    top: int = 5
+
+class Sentinel5PQueryResponse(BaseModel):
+    status: str
+    query_timestamp: str
+    total_found: int
+    products: List[Sentinel5PProductItem]
+    source_catalogue_url: str
+    auth_required_for_download: bool
 
 class PredictionRequest(BaseModel):
     latitude: float = Field(..., ge=-90.0, le=90.0, description="Latitude in decimal degrees")
@@ -65,6 +126,7 @@ class PredictionRequest(BaseModel):
     pollutant: str = Field("NO2", description="Pollutant: NO2, PM2.5, SO2, CO, O3")
     target_resolution_km: float = Field(1.0, ge=0.5, le=20.0, description="Target spatial grid resolution in km")
     model_algorithm: Optional[str] = Field("random_forest", description="Algorithm: random_forest, gradient_boosting")
+    data_mode: str = Field("DEMO", description="Data mode: REAL or DEMO")
 
     @field_validator("pollutant")
     def validate_pollutant(cls, v):
@@ -91,6 +153,7 @@ class InputProvenance(BaseModel):
     elevation_m: float
     road_density_proxy: float
     is_demo: bool
+    data_mode: str = "DEMO"
     scientific_disclaimer: str
 
 class PredictionResponse(BaseModel):
@@ -115,6 +178,7 @@ class ModelTrainRequest(BaseModel):
     max_depth: Optional[int] = Field(12, ge=2, le=30)
     spatial_cv_folds: int = Field(5, ge=2, le=10)
     random_state: int = Field(42)
+    data_mode: str = Field("DEMO", description="Data mode: REAL or DEMO")
 
 class BaselineComparison(BaseModel):
     baseline_type: str = "Nearest Station Inverse-Distance Weighting (IDW)"
@@ -153,6 +217,7 @@ class ModelMetricsResponse(BaseModel):
     residual_distribution: Dict[str, Any]
     is_demo: bool
     is_active: bool
+    data_mode: str = "DEMO"
 
 class UploadValidationResponse(BaseModel):
     dataset_id: str
@@ -167,3 +232,12 @@ class UploadValidationResponse(BaseModel):
     is_valid: bool
     validation_messages: List[str]
     preview_rows: List[Dict[str, Any]]
+
+class RealDataIngestionResponse(BaseModel):
+    status: str
+    source: str
+    inserted_count: int
+    timestamp: str
+    pollutants: List[str]
+    date_range: Dict[str, str]
+    message: str

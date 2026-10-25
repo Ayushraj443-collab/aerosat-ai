@@ -7,7 +7,11 @@ import type {
   ModelMetricsResponse,
   UploadValidationResponse,
   MapLayersResponse,
-  GeoJsonGridCollection
+  GeoJsonGridCollection,
+  ConnectorStatusResponse,
+  Sentinel5PQueryRequest,
+  Sentinel5PQueryResponse,
+  DataMode
 } from './types';
 
 const API_BASE = '/api';
@@ -39,18 +43,60 @@ export const api = {
     return handleResponse(res);
   },
 
-  async getStations(): Promise<GroundStation[]> {
-    const res = await fetch(`${API_BASE}/data/stations`);
+  async getConnectorsStatus(): Promise<ConnectorStatusResponse> {
+    const res = await fetch(`${API_BASE}/data/connectors/status`);
+    return handleResponse(res);
+  },
+
+  async querySentinel5PCatalogue(params: Sentinel5PQueryRequest): Promise<Sentinel5PQueryResponse> {
+    const res = await fetch(`${API_BASE}/data/connectors/sentinel5p/query`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(params),
+    });
+    return handleResponse(res);
+  },
+
+  async fetchLiveMeteorology(latitude: number, longitude: number): Promise<any> {
+    const res = await fetch(`${API_BASE}/data/connectors/meteo/fetch`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ latitude, longitude }),
+    });
+    return handleResponse(res);
+  },
+
+  async triggerRealDataIngestion(): Promise<any> {
+    const res = await fetch(`${API_BASE}/data/ingest-real`, {
+      method: 'POST',
+    });
+    return handleResponse(res);
+  },
+
+  async importCpcbCsv(file: File, pollutant: string = 'NO2'): Promise<any> {
+    const formData = new FormData();
+    formData.append('file', file);
+    const res = await fetch(`${API_BASE}/data/import-cpcb?pollutant=${pollutant}`, {
+      method: 'POST',
+      body: formData,
+    });
+    return handleResponse(res);
+  },
+
+  async getStations(mode: DataMode = 'DEMO'): Promise<GroundStation[]> {
+    const res = await fetch(`${API_BASE}/data/stations?mode=${mode.toLowerCase()}`);
     return handleResponse(res);
   },
 
   async getObservations(params: {
+    mode?: DataMode;
     date?: string;
     pollutant?: string;
     station_id?: string;
     limit?: number;
   }): Promise<ObservationRecord[]> {
     const query = new URLSearchParams();
+    query.set('mode', (params.mode || 'DEMO').toLowerCase());
     if (params.date) query.set('date', params.date);
     if (params.pollutant) query.set('pollutant', params.pollutant);
     if (params.station_id) query.set('station_id', params.station_id);
@@ -81,6 +127,7 @@ export const api = {
   },
 
   async getDownscaledGrid(params: {
+    mode?: DataMode;
     date?: string;
     pollutant?: string;
     resolution_km?: number;
@@ -90,6 +137,7 @@ export const api = {
     max_lon?: number;
   }): Promise<GeoJsonGridCollection> {
     const query = new URLSearchParams();
+    query.set('mode', (params.mode || 'DEMO').toLowerCase());
     if (params.date) query.set('date', params.date);
     if (params.pollutant) query.set('pollutant', params.pollutant);
     if (params.resolution_km) query.set('resolution_km', params.resolution_km.toString());
@@ -111,19 +159,23 @@ export const api = {
     return handleResponse(res);
   },
 
-  async getPredictionHistory(limit: number = 20): Promise<any[]> {
-    const res = await fetch(`${API_BASE}/predictions/history?limit=${limit}`);
+  async getPredictionHistory(limit: number = 20, mode?: DataMode): Promise<any[]> {
+    const query = new URLSearchParams();
+    query.set('limit', limit.toString());
+    if (mode) query.set('mode', mode.toLowerCase());
+    const res = await fetch(`${API_BASE}/predictions/history?${query.toString()}`);
     return handleResponse(res);
   },
 
   // Model
-  async getModelStatus(): Promise<any> {
-    const res = await fetch(`${API_BASE}/model/status`);
+  async getModelStatus(mode?: DataMode): Promise<any> {
+    const query = mode ? `?mode=${mode.toLowerCase()}` : '';
+    const res = await fetch(`${API_BASE}/model/status${query}`);
     return handleResponse(res);
   },
 
-  async getModelMetrics(pollutant: string = 'NO2'): Promise<ModelMetricsResponse> {
-    const res = await fetch(`${API_BASE}/model/metrics?pollutant=${pollutant}`);
+  async getModelMetrics(pollutant: string = 'NO2', mode: DataMode = 'DEMO'): Promise<ModelMetricsResponse> {
+    const res = await fetch(`${API_BASE}/model/metrics?pollutant=${pollutant}&mode=${mode.toLowerCase()}`);
     return handleResponse(res);
   },
 
@@ -133,6 +185,7 @@ export const api = {
     n_estimators?: number;
     max_depth?: number;
     spatial_cv_folds?: number;
+    data_mode?: DataMode;
   }): Promise<ModelMetricsResponse> {
     const res = await fetch(`${API_BASE}/model/train`, {
       method: 'POST',
@@ -143,6 +196,7 @@ export const api = {
         n_estimators: params.n_estimators || 100,
         max_depth: params.max_depth || 12,
         spatial_cv_folds: params.spatial_cv_folds || 5,
+        data_mode: params.data_mode || 'DEMO',
       }),
     });
     return handleResponse(res);

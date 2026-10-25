@@ -11,12 +11,13 @@ import {
   FileText
 } from 'lucide-react';
 import { api } from '../services/api';
-import type { PredictionResponse } from '../services/types';
+import type { PredictionResponse, DataMode } from '../services/types';
 
 interface PredictionPageProps {
   initialLat?: number;
   initialLon?: number;
   initialPollutant?: string;
+  dataMode?: DataMode;
 }
 
 const REGIONAL_PRESETS = [
@@ -33,6 +34,7 @@ export const PredictionPage: React.FC<PredictionPageProps> = ({
   initialLat = 28.6476,
   initialLon = 77.3158,
   initialPollutant = 'NO2',
+  dataMode = 'REAL',
 }) => {
   const [latitude, setLatitude] = useState<number>(initialLat);
   const [longitude, setLongitude] = useState<number>(initialLon);
@@ -79,6 +81,7 @@ export const PredictionPage: React.FC<PredictionPageProps> = ({
         pollutant,
         target_resolution_km: Number(resolutionKm),
         model_algorithm: algorithm,
+        data_mode: dataMode,
       });
       setPrediction(res);
       loadHistory();
@@ -97,14 +100,29 @@ export const PredictionPage: React.FC<PredictionPageProps> = ({
   return (
     <div className="space-y-8 animate-fadeIn">
       {/* Header */}
-      <div>
-        <h1 className="text-2xl font-bold tracking-tight text-white flex items-center gap-2.5">
-          <Cpu className="w-6 h-6 text-cyan-400" />
-          <span>Spatial Downscaling & Prediction Workspace</span>
-        </h1>
-        <p className="text-xs text-slate-400 mt-1">
-          Perform high-resolution localized air quality inferences with full tree-ensemble uncertainty bounds and input provenance logging.
-        </p>
+      <div className="flex flex-wrap items-center justify-between gap-4">
+        <div>
+          <h1 className="text-2xl font-bold tracking-tight text-white flex items-center gap-2.5">
+            <Cpu className="w-6 h-6 text-cyan-400" />
+            <span>Spatial Downscaling & Prediction Workspace</span>
+          </h1>
+          <p className="text-xs text-slate-400 mt-1">
+            Perform high-resolution localized air quality inferences with full tree-ensemble uncertainty bounds and input provenance logging.
+          </p>
+        </div>
+        <div className="flex items-center gap-2">
+          {dataMode === 'REAL' ? (
+            <span className="px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider bg-emerald-500/10 text-emerald-400 border border-emerald-500/30 flex items-center gap-1.5 shadow-sm shadow-emerald-500/10">
+              <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
+              Real ML Inferences Active
+            </span>
+          ) : (
+            <span className="px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider bg-amber-500/10 text-amber-400 border border-amber-500/30 flex items-center gap-1.5">
+              <span className="w-2 h-2 rounded-full bg-amber-400" />
+              Demo Simulation Mode
+            </span>
+          )}
+        </div>
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
@@ -305,7 +323,11 @@ export const PredictionPage: React.FC<PredictionPageProps> = ({
                     </div>
                     <div className="text-right">
                       <div className="text-[10px] text-slate-400 font-mono">{h.target_resolution_km} km</div>
-                      <div className="text-[9px] text-amber-400">Demo</div>
+                      <div className={`text-[9px] font-bold uppercase tracking-wider ${
+                        h.data_mode === 'REAL' ? 'text-emerald-400' : 'text-amber-400'
+                      }`}>
+                        {h.data_mode || (h.is_demo === false ? 'REAL' : 'DEMO')}
+                      </div>
                     </div>
                   </div>
                 ))}
@@ -321,8 +343,19 @@ export const PredictionPage: React.FC<PredictionPageProps> = ({
               {/* Result Header */}
               <div className="flex flex-wrap items-center justify-between gap-4 border-b border-slate-800 pb-4">
                 <div>
-                  <div className="text-[11px] font-mono text-cyan-400 uppercase tracking-wider">
-                    Downscaled Ground Prediction Result
+                  <div className="flex items-center gap-2 mb-1">
+                    <span className="text-[11px] font-mono text-cyan-400 uppercase tracking-wider">
+                      Downscaled Ground Prediction Result
+                    </span>
+                    {prediction.provenance.data_mode === 'REAL' || (!prediction.provenance.is_demo && prediction.provenance.data_mode !== 'DEMO') ? (
+                      <span className="px-2 py-0.5 rounded text-[10px] font-extrabold uppercase bg-emerald-500/20 text-emerald-300 border border-emerald-500/40">
+                        REAL MODEL
+                      </span>
+                    ) : (
+                      <span className="px-2 py-0.5 rounded text-[10px] font-extrabold uppercase bg-amber-500/20 text-amber-300 border border-amber-500/40">
+                        DEMO MODE
+                      </span>
+                    )}
                   </div>
                   <div className="text-lg font-bold text-white flex items-center gap-2">
                     <span>{prediction.pollutant} Localized Surface Concentration</span>

@@ -8,14 +8,23 @@ import {
   Database,
   BookOpen
 } from 'lucide-react';
+import type { DataMode } from '../services/types';
 
 interface NavbarProps {
   activeTab: string;
   setActiveTab: (tab: string) => void;
   backendHealthy: boolean;
+  dataMode: DataMode;
+  setDataMode: (mode: DataMode) => void;
 }
 
-export const Navbar: React.FC<NavbarProps> = ({ activeTab, setActiveTab, backendHealthy }) => {
+export const Navbar: React.FC<NavbarProps> = ({
+  activeTab,
+  setActiveTab,
+  backendHealthy,
+  dataMode,
+  setDataMode
+}) => {
   const navItems = [
     { id: 'overview', label: 'Overview', icon: Compass },
     { id: 'map', label: 'Pollution Map', icon: MapPin },
@@ -69,8 +78,37 @@ export const Navbar: React.FC<NavbarProps> = ({ activeTab, setActiveTab, backend
             })}
           </nav>
 
-          {/* Backend Health & Status Pill */}
+          {/* Controls: Mode Switcher & Backend Health */}
           <div className="flex items-center gap-3">
+            {/* Real / Demo Mode Toggle */}
+            <div className="flex items-center bg-slate-900 border border-slate-700/60 rounded-lg p-0.5 text-xs font-medium">
+              <button
+                onClick={() => setDataMode('REAL')}
+                title="Switch to Real Verified Data Mode"
+                className={`px-2.5 py-1 rounded flex items-center gap-1.5 transition-all ${
+                  dataMode === 'REAL'
+                    ? 'bg-emerald-600 text-white shadow-sm font-semibold'
+                    : 'text-slate-400 hover:text-slate-200'
+                }`}
+              >
+                <span className={`w-1.5 h-1.5 rounded-full ${dataMode === 'REAL' ? 'bg-emerald-200 animate-pulse' : 'bg-slate-500'}`} />
+                REAL DATA
+              </button>
+              <button
+                onClick={() => setDataMode('DEMO')}
+                title="Switch to Demonstration Mode"
+                className={`px-2.5 py-1 rounded flex items-center gap-1.5 transition-all ${
+                  dataMode === 'DEMO'
+                    ? 'bg-amber-600 text-white shadow-sm font-semibold'
+                    : 'text-slate-400 hover:text-slate-200'
+                }`}
+              >
+                <span className={`w-1.5 h-1.5 rounded-full ${dataMode === 'DEMO' ? 'bg-amber-200' : 'bg-slate-500'}`} />
+                DEMO
+              </button>
+            </div>
+
+            {/* Backend Health Pill */}
             <div className="hidden lg:flex items-center gap-2 px-2.5 py-1 rounded-full bg-slate-900 border border-slate-800 text-xs">
               <span className={`w-2 h-2 rounded-full ${backendHealthy ? 'bg-emerald-400 animate-pulse' : 'bg-rose-500'}`} />
               <span className="text-[11px] font-mono text-slate-300">
@@ -78,6 +116,7 @@ export const Navbar: React.FC<NavbarProps> = ({ activeTab, setActiveTab, backend
               </span>
             </div>
 
+            {/* Mobile Dropdown */}
             <div className="md:hidden flex items-center">
               <select
                 aria-label="Navigation Pages"

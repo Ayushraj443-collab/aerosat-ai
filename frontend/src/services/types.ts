@@ -1,3 +1,5 @@
+export type DataMode = 'REAL' | 'DEMO';
+
 export interface DataSourceInfo {
   id: string;
   name: string;
@@ -14,6 +16,63 @@ export interface DataSourceInfo {
   setup_guide?: string;
 }
 
+export interface ConnectorStatusItem {
+  connector_id: string;
+  name: string;
+  category: 'satellite' | 'ground' | 'meteorology';
+  status: 'VERIFIED' | 'IMPLEMENTED_BUT_UNVERIFIED' | 'BLOCKED' | 'FAILED';
+  endpoint_url: string;
+  auth_required: boolean;
+  auth_configured: boolean;
+  last_queried_at?: string;
+  record_count: number;
+  sample_record?: Record<string, any>;
+  last_error?: string;
+  notes: string;
+}
+
+export interface ConnectorStatusResponse {
+  timestamp: string;
+  connectors: ConnectorStatusItem[];
+  summary?: {
+    verified_connectors: number;
+    blocked_connectors: number;
+    total_records: number;
+  };
+}
+
+export interface Sentinel5PQueryRequest {
+  pollutant?: string;
+  start_date?: string;
+  end_date?: string;
+  min_lat?: number;
+  max_lat?: number;
+  min_lon?: number;
+  max_lon?: number;
+  top?: number;
+  limit?: number;
+}
+
+export interface Sentinel5PProductItem {
+  product_id: string;
+  granule_name: string;
+  pollutant: string;
+  acquisition_start: string;
+  acquisition_end: string;
+  content_length_bytes: number;
+  footprint_wkt?: string;
+  online_status: string;
+}
+
+export interface Sentinel5PQueryResponse {
+  status: string;
+  query_timestamp: string;
+  total_found: number;
+  products: Sentinel5PProductItem[];
+  source_catalogue_url: string;
+  auth_required_for_download: boolean;
+}
+
 export interface GroundStation {
   station_id: string;
   name: string;
@@ -25,6 +84,7 @@ export interface GroundStation {
   operational_status: string;
   latest_reading?: Record<string, { value: number; unit: string }>;
   is_demo: boolean;
+  data_mode?: DataMode;
 }
 
 export interface ObservationRecord {
@@ -46,6 +106,14 @@ export interface ObservationRecord {
   elevation_m: number;
   road_density_proxy: number;
   is_demo: boolean;
+  data_mode: DataMode;
+  source_name: string;
+  source_product: string;
+  source_record_id?: string;
+  observation_time?: string;
+  retrieved_at?: string;
+  quality_flag?: number;
+  dataset_version?: string;
 }
 
 export interface PredictionRequest {
@@ -55,6 +123,7 @@ export interface PredictionRequest {
   pollutant: string;
   target_resolution_km: number;
   model_algorithm?: string;
+  data_mode?: DataMode;
 }
 
 export interface UncertaintyEstimate {
@@ -83,6 +152,7 @@ export interface InputProvenance {
   elevation_m: number;
   road_density_proxy: number;
   is_demo: boolean;
+  data_mode?: DataMode;
   scientific_disclaimer: string;
 }
 
@@ -158,6 +228,7 @@ export interface ModelMetricsResponse {
   };
   is_demo: boolean;
   is_active: boolean;
+  data_mode: DataMode;
 }
 
 export interface UploadValidationResponse {
@@ -245,6 +316,8 @@ export interface GeoJsonGridCollection {
     model_r2: number;
     crs: string;
     is_demo: boolean;
+    data_mode: DataMode;
+    source_provenance?: string;
     scientific_disclaimer: string;
   };
   features: GeoJsonGridFeature[];

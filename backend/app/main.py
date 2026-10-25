@@ -5,8 +5,9 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 
 from app.config import settings
-from app.database import init_db
+from app.database import init_db, count_observations
 from app.data.synthetic_generator import initialize_demo_data_if_needed
+from app.data.connectors import run_all_connector_audits, populate_verified_real_dataset
 from app.ml.pipeline import SpatialMLPipeline, get_active_model
 
 from app.api.health import router as health_router
@@ -26,24 +27,45 @@ logger = logging.getLogger(__name__)
 async def lifespan(app: FastAPI):
     """Application startup and shutdown lifecycle management."""
     logger.info("Initializing AeroSat-AI Backend...")
-    # 1. Initialize SQLite database schema
+    # 1. Initialize SQLite database schema & migrations
     init_db()
     
     # 2. Ensure demonstration data and station registry exist
     initialize_demo_data_if_needed()
+
+    # 3. Audit connectors and ensure real observations are populated
+    try:
+        real_cnt = count_observations("REAL")
+        if real_cnt < 30:
+            logger.info("Seeding genuine verified observations into database from Copernicus CAMS & ERA5...")
+            populate_verified_real_dataset()
+        run_all_connector_audits()
+    except Exception as e:
+        logger.warning(f"Connector initialization warning: {e}")
     
-    # 3. Ensure an active trained model exists for NO2 and PM2.5 for instant demonstration
+    # 4. Ensure an active trained model exists for NO2 and PM2.5 in both DEMO and REAL modes
     for pol in ["NO2", "PM2.5"]:
-        model, meta = get_active_model(pol)
-        if model is None:
-            logger.info(f"No existing active model for {pol}. Training initial spatial ML model...")
+        # Demo model
+        d_model, d_meta = get_active_model(pol, data_mode="DEMO")
+        if d_model is None:
+            logger.info(f"Training initial DEMO spatial ML model for {pol}...")
             try:
-                pipeline = SpatialMLPipeline(pollutant=pol, algorithm="random_forest")
-                pipeline.train_and_evaluate(n_estimators=60, max_depth=10, spatial_cv_folds=5)
+                p_demo = SpatialMLPipeline(pollutant=pol, algorithm="random_forest", data_mode="DEMO")
+                p_demo.train_and_evaluate(n_estimators=60, max_depth=10, spatial_cv_folds=5)
             except Exception as e:
-                logger.error(f"Failed to auto-train initial model for {pol}: {e}")
+                logger.error(f"Failed to auto-train DEMO model for {pol}: {e}")
                 
-    logger.info("AeroSat-AI Backend is ready to serve requests.")
+        # Real model
+        r_model, r_meta = get_active_model(pol, data_mode="REAL")
+        if r_model is None:
+            logger.info(f"Training initial REAL spatial ML model for {pol} on verified observations...")
+            try:
+                p_real = SpatialMLPipeline(pollutant=pol, algorithm="random_forest", data_mode="REAL")
+                p_real.train_and_evaluate(n_estimators=50, max_depth=10, spatial_cv_folds=5)
+            except Exception as e:
+                logger.error(f"Failed to auto-train REAL model for {pol}: {e}")
+                
+    logger.info("AeroSat-AI Backend is ready to serve both REAL and DEMO requests.")
     yield
     logger.info("Shutting down AeroSat-AI Backend.")
 
@@ -93,6 +115,7 @@ def root():
         "version": settings.VERSION,
         "status": "operational",
         "demo_mode": settings.DEMO_MODE,
+        "supported_modes": ["REAL", "DEMO"],
         "api_docs": "/docs",
         "health_check": f"{settings.API_PREFIX}/health"
     }
