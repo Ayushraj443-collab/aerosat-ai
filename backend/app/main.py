@@ -43,7 +43,7 @@ async def lifespan(app: FastAPI):
     except Exception as e:
         logger.warning(f"Connector initialization warning: {e}")
     
-    # 4. Ensure an active trained model exists for NO2 and PM2.5 in both DEMO and REAL modes
+    # 4. Ensure an active trained model exists for NO2 and PM2.5 in DEMO mode, and NO2 in REAL mode
     for pol in ["NO2", "PM2.5"]:
         # Demo model
         d_model, d_meta = get_active_model(pol, data_mode="DEMO")
@@ -55,13 +55,14 @@ async def lifespan(app: FastAPI):
             except Exception as e:
                 logger.error(f"Failed to auto-train DEMO model for {pol}: {e}")
                 
-        # Real model
+    # Real model (currently NO2 has verified Level-2 satellite collocations)
+    for pol in ["NO2"]:
         r_model, r_meta = get_active_model(pol, data_mode="REAL")
         if r_model is None:
             logger.info(f"Training initial REAL spatial ML model for {pol} on verified observations...")
             try:
-                p_real = SpatialMLPipeline(pollutant=pol, algorithm="random_forest", data_mode="REAL")
-                p_real.train_and_evaluate(n_estimators=50, max_depth=10, spatial_cv_folds=5)
+                p_real = SpatialMLPipeline(pollutant=pol, algorithm="bayesian_ridge", data_mode="REAL")
+                p_real.train_and_evaluate(spatial_cv_folds=3, data_mode="REAL")
             except Exception as e:
                 logger.error(f"Failed to auto-train REAL model for {pol}: {e}")
                 
@@ -83,6 +84,7 @@ app = FastAPI(
 app.add_middleware(
     CORSMiddleware,
     allow_origins=settings.CORS_ORIGINS,
+    allow_origin_regex=r"https://.*\.vercel\.app",
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -115,6 +117,7 @@ def root():
         "version": settings.VERSION,
         "status": "operational",
         "demo_mode": settings.DEMO_MODE,
+        "default_data_mode": getattr(settings, "DEFAULT_DATA_MODE", "REAL"),
         "supported_modes": ["REAL", "DEMO"],
         "api_docs": "/docs",
         "health_check": f"{settings.API_PREFIX}/health"

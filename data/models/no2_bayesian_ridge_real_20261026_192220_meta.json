@@ -1,0 +1,248 @@
+{
+  "model_id": "no2_bayesian_ridge_real_20261026_192220",
+  "model_name": "AeroSat-NO2-BAYESIAN_RIDGE-REAL",
+  "target_pollutant": "NO2",
+  "algorithm": "bayesian_ridge",
+  "data_mode": "REAL",
+  "training_source": "ESA Copernicus Sentinel-5P (TROPOMI Level-2 OFFL) & CPCB CAAQMS Ground Monitors",
+  "dataset_version": "S5P_L2_TROPOMI_CPCB_PAIRED_V2",
+  "dataset_fingerprint": "9a602cfb6ed2",
+  "validation_method": "GroupKFold Spatial Cross-Validation by Ground Station (3 Folds, Zero Spatial Leakage)",
+  "is_preliminary": true,
+  "data_limitation_notice": "Preliminary Spatial Evaluation: Ground truth is evaluated across 7 verified CPCB monitoring stations (N=7 collocations) during Sentinel-5P TROPOMI overpass. Spatial GroupKFold validation strictly isolates held-out stations.",
+  "trained_at": "2026-10-26T19:22:21.081925",
+  "train_samples": 4,
+  "val_samples": 7,
+  "mae": 3.57,
+  "rmse": 4.75,
+  "r2": 0.4774,
+  "mean_bias_error": -0.4,
+  "normalized_rmse_pct": 9.9,
+  "baseline_comparison": {
+    "baseline_type": "Nearest Station Inverse-Distance Weighting (IDW)",
+    "baseline_mae": 7.06,
+    "baseline_rmse": 8.69,
+    "baseline_r2": -0.7482,
+    "ml_improvement_mae_pct": 49.4,
+    "ml_improvement_rmse_pct": 45.3
+  },
+  "spatial_validation_folds": [
+    {
+      "fold": 1,
+      "held_out_stations": [
+        "DEL_IGI_AIRPORT",
+        "DEL_PUNJABI_BAGH",
+        "NOI_SEC_62"
+      ],
+      "train_count": 4,
+      "val_count": 3,
+      "mae": 5.61,
+      "rmse": 6.53,
+      "r2": 0.4097
+    },
+    {
+      "fold": 2,
+      "held_out_stations": [
+        "DEL_MANDIR_MARG",
+        "GGN_SEC_51"
+      ],
+      "train_count": 5,
+      "val_count": 2,
+      "mae": 2.76,
+      "rmse": 3.54,
+      "r2": -1.0037
+    },
+    {
+      "fold": 3,
+      "held_out_stations": [
+        "DEL_LODHI_ROAD",
+        "DEL_RK_PURAM"
+      ],
+      "train_count": 5,
+      "val_count": 2,
+      "mae": 1.33,
+      "rmse": 1.62,
+      "r2": 0.851
+    }
+  ],
+  "feature_importances": [
+    {
+      "feature": "road_density_proxy",
+      "importance": 0.7254
+    },
+    {
+      "feature": "satellite_column",
+      "importance": 0.2746
+    },
+    {
+      "feature": "latitude",
+      "importance": 0.0
+    },
+    {
+      "feature": "longitude",
+      "importance": 0.0
+    },
+    {
+      "feature": "temperature_c",
+      "importance": 0.0
+    },
+    {
+      "feature": "relative_humidity_pct",
+      "importance": 0.0
+    },
+    {
+      "feature": "wind_speed_ms",
+      "importance": 0.0
+    },
+    {
+      "feature": "wind_direction_deg",
+      "importance": 0.0
+    },
+    {
+      "feature": "boundary_layer_height_m",
+      "importance": 0.0
+    },
+    {
+      "feature": "ventilation_index",
+      "importance": 0.0
+    },
+    {
+      "feature": "elevation_m",
+      "importance": 0.0
+    },
+    {
+      "feature": "day_sin",
+      "importance": 0.0
+    },
+    {
+      "feature": "day_cos",
+      "importance": 0.0
+    }
+  ],
+  "observed_vs_predicted": [
+    {
+      "index": 0,
+      "observed": 51.3,
+      "predicted": 52.17,
+      "error": 0.87,
+      "date": "2024-01-01T07:45:00Z",
+      "station": "Punjabi Bagh, Delhi"
+    },
+    {
+      "index": 1,
+      "observed": 43.0,
+      "predicted": 42.46,
+      "error": -0.54,
+      "date": "2024-01-01T07:45:00Z",
+      "station": "Mandir Marg, Delhi"
+    },
+    {
+      "index": 2,
+      "observed": 40.2,
+      "predicted": 48.18,
+      "error": 7.98,
+      "date": "2024-01-01T07:45:00Z",
+      "station": "IGI Airport (T3), Delhi"
+    },
+    {
+      "index": 3,
+      "observed": 51.2,
+      "predicted": 53.46,
+      "error": 2.26,
+      "date": "2024-01-01T07:45:00Z",
+      "station": "R K Puram, Delhi"
+    },
+    {
+      "index": 4,
+      "observed": 42.8,
+      "predicted": 42.39,
+      "error": -0.41,
+      "date": "2024-01-01T07:45:00Z",
+      "station": "Lodhi Road, Delhi"
+    },
+    {
+      "index": 5,
+      "observed": 61.0,
+      "predicted": 53.03,
+      "error": -7.97,
+      "date": "2024-01-01T07:45:00Z",
+      "station": "Sector 62, Noida"
+    },
+    {
+      "index": 6,
+      "observed": 48.0,
+      "predicted": 43.02,
+      "error": -4.98,
+      "date": "2024-01-01T07:45:00Z",
+      "station": "Sector 51, Gurugram"
+    }
+  ],
+  "residual_distribution": {
+    "mean_residual": -0.4,
+    "std_residual": 4.74,
+    "histogram": [
+      {
+        "bin_range": "-8.0 to -6.6",
+        "bin_center": -7.3,
+        "count": 1
+      },
+      {
+        "bin_range": "-6.6 to -5.3",
+        "bin_center": -6.0,
+        "count": 0
+      },
+      {
+        "bin_range": "-5.3 to -4.0",
+        "bin_center": -4.6,
+        "count": 1
+      },
+      {
+        "bin_range": "-4.0 to -2.7",
+        "bin_center": -3.3,
+        "count": 0
+      },
+      {
+        "bin_range": "-2.7 to -1.3",
+        "bin_center": -2.0,
+        "count": 0
+      },
+      {
+        "bin_range": "-1.3 to 0.0",
+        "bin_center": -0.7,
+        "count": 2
+      },
+      {
+        "bin_range": "0.0 to 1.3",
+        "bin_center": 0.7,
+        "count": 1
+      },
+      {
+        "bin_range": "1.3 to 2.7",
+        "bin_center": 2.0,
+        "count": 1
+      },
+      {
+        "bin_range": "2.7 to 4.0",
+        "bin_center": 3.3,
+        "count": 0
+      },
+      {
+        "bin_range": "4.0 to 5.3",
+        "bin_center": 4.7,
+        "count": 0
+      },
+      {
+        "bin_range": "5.3 to 6.7",
+        "bin_center": 6.0,
+        "count": 0
+      },
+      {
+        "bin_range": "6.7 to 8.0",
+        "bin_center": 7.3,
+        "count": 1
+      }
+    ]
+  },
+  "is_demo": false,
+  "is_active": true
+}

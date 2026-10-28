@@ -91,28 +91,39 @@ def get_model_status(mode: Optional[str] = Query(None, description="'real' or 'd
 @router.get("/metrics", response_model=ModelMetricsResponse)
 def get_model_metrics(
     pollutant: str = Query("NO2", description="Pollutant: NO2, PM2.5, SO2, CO, O3"),
-    mode: str = Query("demo", description="Data mode: 'real' or 'demo'")
+    mode: Optional[str] = Query(None, description="Data mode: 'real' or 'demo'"),
+    data_mode: Optional[str] = Query(None, description="Data mode: 'real' or 'demo'"),
+    re_evaluate: bool = Query(False, description="Trigger fresh evaluation run on current observations")
 ):
     """
     Retrieve comprehensive evaluation metrics, spatial cross-validation fold results,
     baseline comparisons, feature importances, and residual distributions for the active model.
-    Strictly isolates REAL and DEMO models.
+    Strictly isolates REAL and DEMO models. Supports re_evaluate=True to run a fresh evaluation.
     """
     p = pollutant.upper()
-    data_mode = mode.upper()
+    data_mode_effective = (data_mode or mode or "demo").upper()
     if p not in settings.SUPPORTED_POLLUTANTS:
         raise HTTPException(
             status_code=400,
             detail=f"Unsupported pollutant '{pollutant}'. Must be one of {list(settings.SUPPORTED_POLLUTANTS.keys())}"
         )
+
+    if re_evaluate:
+        alg = "random_forest" if data_mode_effective == "REAL" else "random_forest"
+        pipeline = SpatialMLPipeline(pollutant=p, algorithm=alg, data_mode=data_mode_effective)
+        try:
+            meta = pipeline.train_and_evaluate(data_mode=data_mode_effective)
+            return meta
+        except ValueError as ve:
+            raise HTTPException(status_code=400, detail=str(ve))
         
-    model, meta = get_active_model(p, data_mode=data_mode)
+    model, meta = get_active_model(p, data_mode=data_mode_effective)
     if meta is None:
-        if data_mode == "REAL":
-            # Check if we can train on existing real observations
+        if data_mode_effective == "REAL":
+            # Train initial verified real model
             pipeline = SpatialMLPipeline(pollutant=p, algorithm="random_forest", data_mode="REAL")
             try:
-                meta = pipeline.train_and_evaluate(n_estimators=50, max_depth=10, spatial_cv_folds=5, data_mode="REAL")
+                meta = pipeline.train_and_evaluate(data_mode="REAL")
             except ValueError as ve:
                 raise HTTPException(
                     status_code=404,
@@ -124,3 +135,30 @@ def get_model_metrics(
             meta = pipeline.train_and_evaluate(n_estimators=75, max_depth=12, data_mode="DEMO")
             
     return meta
+
+@router.post("/re-evaluate", response_model=ModelMetricsResponse)
+def trigger_model_re_evaluation(
+    pollutant: str = Query("NO2", description="Pollutant: NO2, PM2.5, SO2, CO, O3"),
+    data_mode: str = Query("REAL", description="Data mode: 'REAL' or 'DEMO'"),
+    algorithm: Optional[str] = Query(None, description="Optional algorithm override")
+):
+    """
+    Trigger a fresh out-of-fold spatial evaluation run on current observations,
+    re-computing spatial fold metrics, baseline IDW comparisons, and registering the result.
+    """
+    p = pollutant.upper()
+    mode = data_mode.upper()
+    if p not in settings.SUPPORTED_POLLUTANTS:
+        raise HTTPException(
+            status_code=400,
+            detail=f"Unsupported pollutant '{pollutant}'. Must be one of {list(settings.SUPPORTED_POLLUTANTS.keys())}"
+        )
+    alg = (algorithm or ("bayesian_ridge" if mode == "REAL" else "random_forest")).lower()
+    pipeline = SpatialMLPipeline(pollutant=p, algorithm=alg, data_mode=mode)
+    try:
+        metrics = pipeline.train_and_evaluate(data_mode=mode)
+    except ValueError as ve:
+        raise HTTPException(status_code=400, detail=str(ve))
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Re-evaluation failed: {str(e)}")
+    return metrics

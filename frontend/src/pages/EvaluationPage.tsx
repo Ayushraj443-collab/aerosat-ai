@@ -5,7 +5,11 @@ import {
   ShieldCheck,
   RefreshCw,
   Award,
-  Play
+  Play,
+  AlertTriangle,
+  Database,
+  Calendar,
+  Cpu
 } from 'lucide-react';
 import {
   ScatterChart,
@@ -31,24 +35,39 @@ export const EvaluationPage: React.FC<EvaluationPageProps> = ({ dataMode = 'REAL
   const [metrics, setMetrics] = useState<ModelMetricsResponse | null>(null);
   const [loading, setLoading] = useState<boolean>(true);
   const [retraining, setRetraining] = useState<boolean>(false);
+  const [reEvaluating, setReEvaluating] = useState<boolean>(false);
   const [trainAlgorithm, setTrainAlgorithm] = useState<string>('random_forest');
   const [trainTrees, setTrainTrees] = useState<number>(100);
   const [trainDepth, setTrainDepth] = useState<number>(12);
   const [trainFolds, setTrainFolds] = useState<number>(5);
 
   useEffect(() => {
+    setTrainAlgorithm('random_forest');
+    setTrainFolds(5);
     loadMetrics();
   }, [selectedPollutant, dataMode]);
 
-  async function loadMetrics() {
+  async function loadMetrics(forceFresh = false) {
     try {
       setLoading(true);
-      const res = await api.getModelMetrics(selectedPollutant, dataMode);
+      const res = await api.getModelMetrics(selectedPollutant, dataMode, forceFresh);
       setMetrics(res);
     } catch (err) {
       console.error('Failed to load metrics:', err);
     } finally {
       setLoading(false);
+    }
+  }
+
+  async function handleReEvaluate() {
+    try {
+      setReEvaluating(true);
+      const res = await api.reEvaluateModel(selectedPollutant, dataMode, dataMode === 'REAL' ? trainAlgorithm : undefined);
+      setMetrics(res);
+    } catch (err: any) {
+      alert(`Re-evaluation failed: ${err.message}`);
+    } finally {
+      setReEvaluating(false);
     }
   }
 
@@ -95,25 +114,37 @@ export const EvaluationPage: React.FC<EvaluationPageProps> = ({ dataMode = 'REAL
           </div>
           <p className="text-xs text-slate-400">
             {dataMode === 'REAL'
-              ? 'Trained and validated on verified real CPCB stations & Copernicus atmospheric datasets with GroupKFold spatial holdout.'
+              ? 'Trained and validated on verified real CPCB stations & Copernicus Sentinel-5P atmospheric observations with GroupKFold spatial holdout.'
               : 'Demonstration spatial model trained on multi-station synthetic air quality scenarios.'}
           </p>
         </div>
 
-        <div className="flex items-center gap-2 bg-navy-900 p-1 rounded-xl border border-slate-800 self-start sm:self-auto">
-          {['NO2', 'PM2.5', 'SO2', 'CO', 'O3'].map((p) => (
-            <button
-              key={p}
-              onClick={() => setSelectedPollutant(p)}
-              className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all ${
-                selectedPollutant === p
-                  ? 'bg-cyan-500 text-slate-950 shadow-md shadow-cyan-500/20'
-                  : 'text-slate-400 hover:text-slate-200'
-              }`}
-            >
-              {p}
-            </button>
-          ))}
+        <div className="flex flex-wrap items-center gap-2">
+          <button
+            onClick={handleReEvaluate}
+            disabled={reEvaluating || loading}
+            title="Re-run fresh spatial evaluation on current observations"
+            className="px-3 py-1.5 rounded-xl bg-slate-900 hover:bg-slate-800 text-cyan-400 border border-cyan-800/40 text-xs font-bold transition-all flex items-center gap-1.5 shadow-sm disabled:opacity-50"
+          >
+            <RefreshCw className={`w-3.5 h-3.5 ${reEvaluating ? 'animate-spin text-cyan-400' : ''}`} />
+            <span>{reEvaluating ? 'Evaluating...' : 'Re-run Evaluation'}</span>
+          </button>
+
+          <div className="flex items-center gap-1 bg-navy-900 p-1 rounded-xl border border-slate-800">
+            {['NO2', 'PM2.5', 'SO2', 'CO', 'O3'].map((p) => (
+              <button
+                key={p}
+                onClick={() => setSelectedPollutant(p)}
+                className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all ${
+                  selectedPollutant === p
+                    ? 'bg-cyan-500 text-slate-950 shadow-md shadow-cyan-500/20'
+                    : 'text-slate-400 hover:text-slate-200'
+                }`}
+              >
+                {p}
+              </button>
+            ))}
+          </div>
         </div>
       </div>
 
@@ -123,15 +154,63 @@ export const EvaluationPage: React.FC<EvaluationPageProps> = ({ dataMode = 'REAL
           <div className="text-xs text-slate-400">Loading spatial validation metrics for {selectedPollutant}...</div>
         </div>
       ) : metrics ? (
-        <div className="space-y-8">
+        <div className="space-y-6">
+          {/* Metadata & Provenance Provenance Strip */}
+          <div className="bg-navy-900/90 border border-slate-800/80 rounded-xl p-3.5 flex flex-wrap items-center justify-between gap-3 text-xs">
+            <div className="flex flex-wrap items-center gap-3">
+              <span className="flex items-center gap-1.5 text-slate-300 font-mono text-[11px] bg-slate-950 px-2.5 py-1 rounded-lg border border-slate-800">
+                <Cpu className="w-3.5 h-3.5 text-cyan-400" />
+                <span className="text-slate-400">Model:</span>
+                <span className="text-white font-semibold">{metrics.model_id}</span>
+              </span>
+              <span className="flex items-center gap-1.5 text-slate-300 font-mono text-[11px] bg-slate-950 px-2.5 py-1 rounded-lg border border-slate-800">
+                <Database className="w-3.5 h-3.5 text-teal-400" />
+                <span className="text-slate-400">Dataset:</span>
+                <span className="text-teal-300">{metrics.dataset_version || (dataMode === 'REAL' ? 'S5P_L2_TROPOMI_CPCB_PAIRED_V2' : 'AEROSAT_DEMO_SYNTHETIC_V1')}</span>
+                {metrics.dataset_fingerprint && (
+                  <span className="text-[10px] text-slate-400 font-mono">({metrics.dataset_fingerprint})</span>
+                )}
+              </span>
+              <span className="flex items-center gap-1.5 text-slate-300 font-mono text-[11px] bg-slate-950 px-2.5 py-1 rounded-lg border border-slate-800">
+                <ShieldCheck className="w-3.5 h-3.5 text-emerald-400" />
+                <span className="text-slate-400">Validation:</span>
+                <span className="text-emerald-300 font-medium">{metrics.validation_method || `${metrics.spatial_validation_folds.length} Spatial Folds (GroupKFold)`}</span>
+              </span>
+            </div>
+            <div className="flex items-center gap-1.5 text-slate-400 text-[11px] font-mono">
+              <Calendar className="w-3.5 h-3.5 text-slate-400" />
+              <span>Evaluated: {metrics.trained_at ? new Date(metrics.trained_at).toLocaleString() : 'N/A'}</span>
+            </div>
+          </div>
+
+          {/* Preliminary Evaluation Warning Banner (if N < 30 on real data) */}
+          {(dataMode === 'REAL' && (metrics.val_samples < 30 || metrics.is_preliminary)) && (
+            <div className="bg-amber-950/30 border border-amber-800/40 rounded-xl p-3.5 flex items-start gap-3 text-xs text-amber-200/90 shadow-sm animate-fadeIn">
+              <AlertTriangle className="w-4 h-4 text-amber-400 shrink-0 mt-0.5" />
+              <div className="space-y-1">
+                <div className="font-bold text-amber-300 flex items-center gap-2">
+                  <span>Preliminary Ground Validation ({metrics.val_samples} Collocated Spatial Stations)</span>
+                  <span className="text-[10px] px-2 py-0.5 rounded-full bg-amber-500/20 text-amber-300 border border-amber-500/30 uppercase font-mono tracking-wider">
+                    Scientific Protocol
+                  </span>
+                </div>
+                <p className="text-[11px] text-amber-200/80 leading-relaxed">
+                  {metrics.data_limitation_notice || `Ground truth is evaluated across ${metrics.val_samples} verified CPCB monitoring stations collocated with authentic ESA Sentinel-5P TROPOMI Level-2 orbits across multiple dates. Spatial GroupKFold validation strictly isolates held-out stations in each fold to evaluate true spatial generalization.`}
+                </p>
+              </div>
+            </div>
+          )}
+
           {/* Key Metric Scorecards */}
           <div className="grid grid-cols-2 lg:grid-cols-5 gap-4">
             <div className="bg-navy-900/80 border border-slate-800 rounded-xl p-4 space-y-1">
               <div className="text-[11px] text-slate-400 font-medium">Out-of-Fold R²</div>
-              <div className="text-2xl sm:text-3xl font-black text-cyan-400 font-mono">
+              <div className={`text-2xl sm:text-3xl font-black font-mono ${metrics.r2 >= 0 ? 'text-cyan-400' : 'text-amber-400'}`}>
                 {metrics.r2.toFixed(3)}
               </div>
-              <div className="text-[10px] text-emerald-400">Spatial Generalization Score</div>
+              <div className={`text-[10px] ${metrics.r2 >= 0 ? 'text-emerald-400' : 'text-amber-400/90'}`}>
+                {metrics.r2 >= 0 ? 'Spatial Generalization Score' : 'Spatial Generalization (Held-Out)'}
+              </div>
             </div>
 
             <div className="bg-navy-900/80 border border-slate-800 rounded-xl p-4 space-y-1">
@@ -139,7 +218,7 @@ export const EvaluationPage: React.FC<EvaluationPageProps> = ({ dataMode = 'REAL
               <div className="text-2xl sm:text-3xl font-black text-white font-mono">
                 {metrics.mae.toFixed(2)}
               </div>
-              <div className="text-[10px] text-slate-400">Typical absolute deviation</div>
+              <div className="text-[10px] text-slate-400">Typical absolute deviation (µg/m³)</div>
             </div>
 
             <div className="bg-navy-900/80 border border-slate-800 rounded-xl p-4 space-y-1">
@@ -147,7 +226,7 @@ export const EvaluationPage: React.FC<EvaluationPageProps> = ({ dataMode = 'REAL
               <div className="text-2xl sm:text-3xl font-black text-white font-mono">
                 {metrics.rmse.toFixed(2)}
               </div>
-              <div className="text-[10px] text-slate-400">Penalizes large errors</div>
+              <div className="text-[10px] text-slate-400">Penalizes large errors (µg/m³)</div>
             </div>
 
             <div className="bg-navy-900/80 border border-slate-800 rounded-xl p-4 space-y-1">
@@ -176,14 +255,19 @@ export const EvaluationPage: React.FC<EvaluationPageProps> = ({ dataMode = 'REAL
                   Baseline Comparison: Spatial IDW vs AI Satellite Model
                 </h3>
               </div>
-              <span className="text-xs font-mono text-emerald-400 bg-emerald-950/60 border border-emerald-800/40 px-2.5 py-1 rounded">
-                +{metrics.baseline_comparison.ml_improvement_mae_pct}% Accuracy Gain
+              <span className={`text-xs font-mono px-2.5 py-1 rounded border ${
+                metrics.baseline_comparison.ml_improvement_mae_pct >= 0
+                  ? 'text-emerald-400 bg-emerald-950/60 border-emerald-800/40'
+                  : 'text-amber-400 bg-amber-950/60 border-amber-800/40'
+              }`}>
+                {metrics.baseline_comparison.ml_improvement_mae_pct >= 0 ? '+' : ''}
+                {metrics.baseline_comparison.ml_improvement_mae_pct}% {metrics.baseline_comparison.ml_improvement_mae_pct >= 0 ? 'MAE Reduction vs Baseline' : 'Higher Absolute Error vs Baseline'}
               </span>
             </div>
 
             <p className="text-xs text-slate-400 leading-relaxed">
               To defend the scientific utility of satellite column integration, the machine learning model is benchmarked 
-              against standard Inverse Distance Weighting (IDW) from nearest ground monitors.
+              against standard Inverse Distance Weighting (IDW) from nearest ground monitors evaluated on identical held-out stations.
             </p>
 
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4 pt-2">
@@ -192,15 +276,15 @@ export const EvaluationPage: React.FC<EvaluationPageProps> = ({ dataMode = 'REAL
                 <div className="mt-2 space-y-1 text-xs font-mono">
                   <div className="flex justify-between">
                     <span className="text-slate-400">MAE:</span>
-                    <span className="text-slate-200">{metrics.baseline_comparison.baseline_mae.toFixed(2)}</span>
+                    <span className="text-slate-200">{metrics.baseline_comparison.baseline_mae != null ? metrics.baseline_comparison.baseline_mae.toFixed(2) : 'N/A'}</span>
                   </div>
                   <div className="flex justify-between">
                     <span className="text-slate-400">RMSE:</span>
-                    <span className="text-slate-200">{metrics.baseline_comparison.baseline_rmse.toFixed(2)}</span>
+                    <span className="text-slate-200">{metrics.baseline_comparison.baseline_rmse != null ? metrics.baseline_comparison.baseline_rmse.toFixed(2) : 'N/A'}</span>
                   </div>
                   <div className="flex justify-between">
                     <span className="text-slate-400">R²:</span>
-                    <span className="text-slate-200">{metrics.baseline_comparison.baseline_r2.toFixed(3)}</span>
+                    <span className="text-slate-200">{metrics.baseline_comparison.baseline_r2 != null ? metrics.baseline_comparison.baseline_r2.toFixed(3) : 'N/A'}</span>
                   </div>
                 </div>
               </div>
@@ -210,26 +294,30 @@ export const EvaluationPage: React.FC<EvaluationPageProps> = ({ dataMode = 'REAL
                 <div className="mt-2 space-y-1 text-xs font-mono">
                   <div className="flex justify-between">
                     <span className="text-slate-400">MAE:</span>
-                    <span className="text-cyan-300 font-bold">{metrics.mae.toFixed(2)}</span>
+                    <span className="text-cyan-300 font-bold">{metrics.mae != null ? metrics.mae.toFixed(2) : 'N/A'}</span>
                   </div>
                   <div className="flex justify-between">
                     <span className="text-slate-400">RMSE:</span>
-                    <span className="text-cyan-300 font-bold">{metrics.rmse.toFixed(2)}</span>
+                    <span className="text-cyan-300 font-bold">{metrics.rmse != null ? metrics.rmse.toFixed(2) : 'N/A'}</span>
                   </div>
                   <div className="flex justify-between">
                     <span className="text-slate-400">R²:</span>
-                    <span className="text-cyan-300 font-bold">{metrics.r2.toFixed(3)}</span>
+                    <span className={`font-bold ${metrics.r2 >= 0 ? 'text-cyan-300' : 'text-amber-400'}`}>
+                      {metrics.r2 != null ? metrics.r2.toFixed(3) : 'N/A'}
+                    </span>
                   </div>
                 </div>
               </div>
 
               <div className="bg-slate-950 p-4 rounded-xl border border-slate-850 flex flex-col justify-center text-xs space-y-2">
-                <div className="text-slate-400 text-[11px]">Scientific Improvement</div>
-                <div className="text-emerald-400 font-bold text-sm">
-                  {metrics.baseline_comparison.ml_improvement_mae_pct}% Lower Absolute Error
+                <div className="text-slate-400 text-[11px]">Scientific Comparison</div>
+                <div className={`font-bold text-sm ${metrics.baseline_comparison.ml_improvement_mae_pct >= 0 ? 'text-emerald-400' : 'text-amber-400'}`}>
+                  {metrics.baseline_comparison.ml_improvement_mae_pct >= 0
+                    ? `${metrics.baseline_comparison.ml_improvement_mae_pct}% Lower Absolute Error vs IDW`
+                    : `${Math.abs(metrics.baseline_comparison.ml_improvement_mae_pct)}% Higher Absolute Error vs IDW`}
                 </div>
                 <div className="text-slate-400 text-[10px]">
-                  Proves that spaceborne column integration captures localized pollution spikes invisible to simple distance interpolation.
+                  Evaluates whether spaceborne column integration captures localized pollution gradients compared to direct spatial distance interpolation on identical held-out stations.
                 </div>
               </div>
             </div>
@@ -366,7 +454,9 @@ export const EvaluationPage: React.FC<EvaluationPageProps> = ({ dataMode = 'REAL
                       <td className="py-2.5 px-3 text-right text-slate-200">{fold.val_count}</td>
                       <td className="py-2.5 px-3 text-right font-bold text-slate-200">{fold.mae.toFixed(2)}</td>
                       <td className="py-2.5 px-3 text-right text-slate-300">{fold.rmse.toFixed(2)}</td>
-                      <td className="py-2.5 px-3 text-right font-bold text-emerald-400">{fold.r2.toFixed(3)}</td>
+                      <td className={`py-2.5 px-3 text-right font-bold ${fold.r2 >= 0 ? 'text-emerald-400' : 'text-amber-400'}`}>
+                        {fold.r2.toFixed(3)}
+                      </td>
                     </tr>
                   ))}
                 </tbody>
@@ -421,6 +511,9 @@ export const EvaluationPage: React.FC<EvaluationPageProps> = ({ dataMode = 'REAL
                   onChange={(e) => setTrainAlgorithm(e.target.value)}
                   className="w-full bg-slate-950 border border-slate-800 rounded-lg px-3 py-2 text-slate-200 focus:outline-none focus:border-cyan-500"
                 >
+                  <option value="bayesian_ridge">Bayesian Ridge (Optimal for Sparse Observations)</option>
+                  <option value="ridge">Ridge Regression (L2 Regularized)</option>
+                  <option value="elastic_net">ElasticNet (L1+L2 Regularized)</option>
                   <option value="random_forest">Random Forest Regressor</option>
                   <option value="gradient_boosting">Histogram Gradient Boosting</option>
                 </select>
@@ -434,7 +527,8 @@ export const EvaluationPage: React.FC<EvaluationPageProps> = ({ dataMode = 'REAL
                   max="300"
                   value={trainTrees}
                   onChange={(e) => setTrainTrees(parseInt(e.target.value))}
-                  className="w-full bg-slate-950 border border-slate-800 rounded-lg px-3 py-2 text-slate-200 font-mono focus:outline-none focus:border-cyan-500"
+                  disabled={trainAlgorithm !== 'random_forest' && trainAlgorithm !== 'gradient_boosting'}
+                  className="w-full bg-slate-950 border border-slate-800 rounded-lg px-3 py-2 text-slate-200 font-mono focus:outline-none focus:border-cyan-500 disabled:opacity-30 disabled:cursor-not-allowed"
                 />
               </div>
 
@@ -446,7 +540,8 @@ export const EvaluationPage: React.FC<EvaluationPageProps> = ({ dataMode = 'REAL
                   max="25"
                   value={trainDepth}
                   onChange={(e) => setTrainDepth(parseInt(e.target.value))}
-                  className="w-full bg-slate-950 border border-slate-800 rounded-lg px-3 py-2 text-slate-200 font-mono focus:outline-none focus:border-cyan-500"
+                  disabled={trainAlgorithm !== 'random_forest' && trainAlgorithm !== 'gradient_boosting'}
+                  className="w-full bg-slate-950 border border-slate-800 rounded-lg px-3 py-2 text-slate-200 font-mono focus:outline-none focus:border-cyan-500 disabled:opacity-30 disabled:cursor-not-allowed"
                 />
               </div>
 
@@ -485,8 +580,29 @@ export const EvaluationPage: React.FC<EvaluationPageProps> = ({ dataMode = 'REAL
           </div>
         </div>
       ) : (
-        <div className="bg-navy-900/40 border border-slate-800 rounded-2xl p-12 text-center text-xs text-slate-400">
-          No metrics available for {selectedPollutant}.
+        <div className="bg-navy-900/60 border border-slate-800 rounded-2xl p-12 text-center space-y-3 shadow-xl animate-fadeIn">
+          <div className="w-12 h-12 rounded-full bg-amber-500/10 border border-amber-500/30 flex items-center justify-center text-amber-400 mx-auto">
+            <ShieldCheck className="w-6 h-6" />
+          </div>
+          <div className="text-sm font-bold text-white">
+            No Verified Spatial ML Model for {selectedPollutant} ({dataMode} Mode)
+          </div>
+          <p className="text-xs text-slate-400 max-w-xl mx-auto leading-relaxed">
+            {dataMode === 'REAL'
+              ? `AeroSat-AI enforces strict scientific integrity: spatial machine learning models require genuine ground station pairs across distinct spatial hubs for spatial GroupKFold validation. Currently, verified Sentinel-5P Level-2 granules are ingested for NO2 (TROPOMI orbit 32204). Ingest genuine CPCB ground observations for ${selectedPollutant} or switch to DEMO mode to explore synthetic scenarios.`
+              : `No model has been trained for ${selectedPollutant} in demonstration mode yet. Select NO2 or PM2.5 to view active validated models.`}
+          </p>
+          {dataMode === 'REAL' && (
+            <div className="inline-flex items-center gap-3 px-3.5 py-2 rounded-xl bg-slate-950 border border-slate-800 text-xs text-slate-300 font-mono">
+              <span className="text-slate-400">Verified P19 Satellite-Ground Pair:</span>
+              <button
+                onClick={() => setSelectedPollutant('NO2')}
+                className="text-cyan-400 hover:text-cyan-300 font-bold underline cursor-pointer"
+              >
+                Switch to NO2 (GroupKFold Spatial Validation)
+              </button>
+            </div>
+          )}
         </div>
       )}
     </div>

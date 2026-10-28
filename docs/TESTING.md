@@ -14,37 +14,23 @@ The backend test suite is configured via `backend/pytest.ini` and executed again
 & .\backend\venv\Scripts\pytest.exe .\backend\tests -v
 ```
 
-#### Verified Test Inventory:
-| Test File | Test Name | Purpose | Result |
-| :--- | :--- | :--- | :---: |
-| `test_health.py` | `test_root` | Verifies root `/` service summary and docs link | **PASSED** |
-| `test_health.py` | `test_health_endpoint` | Verifies `/api/health`, DB status, real vs demo record counts | **PASSED** |
-| `test_data_api.py` | `test_get_data_sources` | Validates registration of all data source connectors | **PASSED** |
-| `test_data_api.py` | `test_get_stations` | Validates Delhi-NCR CPCB monitoring station coordinates | **PASSED** |
-| `test_data_api.py` | `test_get_observations` | Tests paired observation filtering by date and pollutant | **PASSED** |
-| `test_ml_pipeline.py` | `test_spatial_ml_pipeline_training` | Validates feature matrix extraction, GroupKFold station splitting, and metrics | **PASSED** |
-| `test_downscaler.py` | `test_haversine_distance` | Validates physical distance calculation across Delhi | **PASSED** |
-| `test_downscaler.py` | `test_estimate_single_location` | Verifies point inference, 90% CI bounds, and provenance | **PASSED** |
-| `test_downscaler.py` | `test_generate_downscaled_grid_geojson` | Verifies polygon grid geometry and metadata formatting | **PASSED** |
-| `test_predict_api.py` | `test_predict_valid_request` | Verifies POST `/api/predict`, history logging, and exports | **PASSED** |
-| `test_predict_api.py` | `test_predict_out_of_bounds_coordinate` | Tests rejection (422) for coordinates outside India | **PASSED** |
-| `test_upload_validation.py` | `test_upload_valid_csv` | Tests successful CSV upload and schema extraction | **PASSED** |
-| `test_upload_validation.py` | `test_upload_missing_coordinates_csv` | Verifies rejection of CSV missing lat/lon columns | **PASSED** |
-| `test_real_connectors.py` | `test_sentinel5p_catalogue_discovery` | Verifies live ESA Copernicus CDSE OData catalogue discovery | **PASSED** |
-| `test_real_connectors.py` | `test_sentinel5p_download_blocked_without_credentials` | Verifies authenticated download reports BLOCKED with setup guide | **PASSED** |
-| `test_real_connectors.py` | `test_open_meteo_weather_connector` | Verifies live ERA5 historical weather & forecast boundary layer height | **PASSED** |
-| `test_real_connectors.py` | `test_copernicus_cams_air_quality_connector` | Verifies live Copernicus CAMS surface PM2.5 and NO2 observations | **PASSED** |
-| `test_real_connectors.py` | `test_openaq_connector_status` | Verifies OpenAQ v3 reports BLOCKED when API key is missing | **PASSED** |
-| `test_real_connectors.py` | `test_cpcb_csv_importer_valid` | Verifies standardized CPCB CCR CSV ingestion and validation | **PASSED** |
-| `test_real_connectors.py` | `test_cpcb_csv_importer_missing_columns` | Verifies rejection of malformed files missing required headers | **PASSED** |
-| `test_data_isolation.py` | `test_database_isolation` | Verifies REAL and DEMO records are cleanly partitioned in DB | **PASSED** |
-| `test_data_isolation.py` | `test_api_observations_mode_filtering` | Verifies `/api/data/observations?mode=real|demo` isolation | **PASSED** |
-| `test_data_isolation.py` | `test_prediction_api_mode_isolation` | Verifies `/api/predict` respects data_mode and logs provenance | **PASSED** |
-| `test_data_isolation.py` | `test_unsupported_pollutant_real_mode_error` | Verifies untrained pollutant in REAL mode returns 400 (no fake data) | **PASSED** |
-| `test_data_isolation.py` | `test_downscaled_grid_mode_parameter` | Verifies `/api/map/downscaled-grid` reflects data_mode in metadata | **PASSED** |
-| `test_data_isolation.py` | `test_prediction_export_formats` | Verifies CSV and GeoJSON prediction export downloads | **PASSED** |
+#### Verified Test Inventory (70/70 Tests Passing):
+| Test File | Test Count | Scope & Focus Areas | Result |
+| :--- | :---: | :--- | :---: |
+| `test_health.py` | 2 | Root `/` service summary, `/api/health`, DB status, real vs demo record counts | **PASSED** |
+| `test_data_api.py` | 10 | Connector registry, stations, paired observations, date filters, observation provenance breakdown, observation type filters, satellite ingestion report, prediction history data mode | **PASSED** |
+| `test_data_isolation.py` | 6 | DB partition isolation, mode filtering (`?mode=real\|demo`), prediction mode provenance, untrained pollutant error handling, downscaled grid mode metadata, CSV/GeoJSON exports | **PASSED** |
+| `test_downscaler.py` | 3 | Haversine distance, single-location downscaling with 90% CI, GeoJSON grid generator with bounding box pre-filtering | **PASSED** |
+| `test_location_summary.py` | 4 | Regional multi-city coordinate summaries (Patna, Ludhiana, Mumbai), historical date handling, invalid coordinates rejection | **PASSED** |
+| `test_ml_pipeline.py` | 1 | Spatial ML pipeline training, GroupKFold station cross-validation, median imputation, baseline IDW comparison | **PASSED** |
+| `test_model_evaluation.py` | 5 | Genuine NO2 pollutant filtering, spatial holdout zero-leakage, Bayesian Ridge baseline, data provenance fingerprint, uncertainty calibration | **PASSED** |
+| `test_p19_verification.py` | 14 | Idempotent dataset registration, SHA256 checksum differentiation, registry deduplication, valid observation preservation, schema validation, source provenance separation, unmatched row exclusion, spatial matching logic, NaN preservation, model metrics from actual predictions, real/demo isolation, API backwards compatibility | **PASSED** |
+| `test_predict_api.py` | 2 | Point prediction, domain boundary validation, prediction history logging, CSV/GeoJSON export | **PASSED** |
+| `test_real_connectors.py` | 12 | Live Copernicus CDSE OData catalogue discovery, download blocker with setup guide, Open-Meteo ERA5 & BLH, Copernicus CAMS surface air quality, OpenAQ key check, Copernicus OAuth manager diagnostics (mock & unconfigured), Sentinel-5P pixel observation retrieval, CPCB CAAQMS CSV importer, and sample Delhi dataset ingestion | **PASSED** |
+| `test_sentinel5p_netcdf.py` | 4 | NetCDF Level-2 granule existence, NetCDF variable & QA extraction, station spatial collocations, paired observation builder without target leakage | **PASSED** |
+| `test_upload_validation.py` | 7 | Upload validation engine, coordinate boundaries, station name resolution, sample Delhi CSV parsing, mixed pollutant determination, duplicate handling, NO2/PM2.5 strict exclusion | **PASSED** |
 
-**Summary:** 26/26 unit, integration, and live connector tests passed in 19.77 seconds.
+**Summary:** 70/70 unit, integration, NetCDF parsing, ML validation, and live connector tests passed (100% pass rate) in 21.52 seconds.
 
 ---
 

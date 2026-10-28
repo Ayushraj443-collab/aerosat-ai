@@ -19,6 +19,7 @@ def get_health():
         "timestamp": datetime.now().isoformat(),
         "version": settings.VERSION,
         "demo_mode": settings.DEMO_MODE,
+        "default_data_mode": getattr(settings, "DEFAULT_DATA_MODE", "REAL"),
         "environment": settings.ENVIRONMENT,
         "loaded_models": loaded_models,
         "storage_status": {

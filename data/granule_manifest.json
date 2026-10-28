@@ -1,0 +1,756 @@
+[
+  {
+    "granule_name": "S5P_OFFL_L2__NO2____20240101T074458_20240101T092628_32219_03_020600_20240102T234931.nc",
+    "acquisition_date": "2024-01-01",
+    "file_size_bytes": 604134461,
+    "valid_delhi_pixels_qa50": 48,
+    "matched_stations_count": 15,
+    "matched_stations": [
+      {
+        "station_id": "DEL_PUNJABI_BAGH",
+        "station_name": "Punjabi Bagh, Delhi",
+        "distance_km": 4.67,
+        "sat_no2_1e15": 9.3626,
+        "sat_qa": 1.0
+      },
+      {
+        "station_id": "DEL_MANDIR_MARG",
+        "station_name": "Mandir Marg, Delhi",
+        "distance_km": 3.03,
+        "sat_no2_1e15": 13.6236,
+        "sat_qa": 1.0
+      },
+      {
+        "station_id": "DEL_IGI_AIRPORT",
+        "station_name": "IGI Airport (T3), Delhi",
+        "distance_km": 2.67,
+        "sat_no2_1e15": 11.8499,
+        "sat_qa": 1.0
+      },
+      {
+        "station_id": "DEL_RK_PURAM",
+        "station_name": "R K Puram, Delhi",
+        "distance_km": 5.29,
+        "sat_no2_1e15": 15.9095,
+        "sat_qa": 1.0
+      },
+      {
+        "station_id": "DEL_LODHI_ROAD",
+        "station_name": "Lodhi Road, Delhi",
+        "distance_km": 1.74,
+        "sat_no2_1e15": 15.9095,
+        "sat_qa": 1.0
+      },
+      {
+        "station_id": "DEL_JAHANGIRPURI",
+        "station_name": "Jahangirpuri, Delhi",
+        "distance_km": 4.3,
+        "sat_no2_1e15": 10.719,
+        "sat_qa": 1.0
+      },
+      {
+        "station_id": "DEL_BAWANA",
+        "station_name": "Bawana Industrial Area, Delhi",
+        "distance_km": 1.64,
+        "sat_no2_1e15": 5.9123,
+        "sat_qa": 0.74
+      },
+      {
+        "station_id": "DEL_OKHLA_PH2",
+        "station_name": "Okhla Phase-2, Delhi",
+        "distance_km": 2.58,
+        "sat_no2_1e15": 17.6954,
+        "sat_qa": 1.0
+      },
+      {
+        "station_id": "NOI_SEC_62",
+        "station_name": "Sector 62, Noida",
+        "distance_km": 0.79,
+        "sat_no2_1e15": 14.9148,
+        "sat_qa": 1.0
+      },
+      {
+        "station_id": "GGN_SEC_51",
+        "station_name": "Sector 51, Gurugram",
+        "distance_km": 4.9,
+        "sat_no2_1e15": 8.6584,
+        "sat_qa": 1.0
+      },
+      {
+        "station_id": "GZB_SANJAY_NAGAR",
+        "station_name": "Sanjay Nagar, Ghaziabad",
+        "distance_km": 5.38,
+        "sat_no2_1e15": 8.9966,
+        "sat_qa": 1.0
+      },
+      {
+        "station_id": "FBD_SEC_16A",
+        "station_name": "Sector 16A, Faridabad",
+        "distance_km": 5.47,
+        "sat_no2_1e15": 12.9744,
+        "sat_qa": 1.0
+      },
+      {
+        "station_id": "DEL_ROHINI_SEC16",
+        "station_name": "Rohini Sector 16, Delhi",
+        "distance_km": 4.35,
+        "sat_no2_1e15": 7.0125,
+        "sat_qa": 0.74
+      },
+      {
+        "station_id": "DEL_ITO",
+        "station_name": "ITO, Delhi",
+        "distance_km": 1.11,
+        "sat_no2_1e15": 13.6236,
+        "sat_qa": 1.0
+      },
+      {
+        "station_id": "DEL_CONNAUGHT_PLACE",
+        "station_name": "Connaught Place, Delhi",
+        "distance_km": 1.28,
+        "sat_no2_1e15": 13.6236,
+        "sat_qa": 1.0
+      }
+    ]
+  },
+  {
+    "granule_name": "S5P_OFFL_L2__NO2____20240103T070658_20240103T084828_32247_03_020600_20240104T230737.nc",
+    "acquisition_date": "2024-01-03",
+    "file_size_bytes": 605502245,
+    "valid_delhi_pixels_qa50": 157,
+    "matched_stations_count": 17,
+    "matched_stations": [
+      {
+        "station_id": "DEL_ANAND_VIHAR",
+        "station_name": "Anand Vihar, Delhi",
+        "distance_km": 2.31,
+        "sat_no2_1e15": 13.8227,
+        "sat_qa": 0.74
+      },
+      {
+        "station_id": "DEL_PUNJABI_BAGH",
+        "station_name": "Punjabi Bagh, Delhi",
+        "distance_km": 3.15,
+        "sat_no2_1e15": 16.3703,
+        "sat_qa": 1.0
+      },
+      {
+        "station_id": "DEL_MANDIR_MARG",
+        "station_name": "Mandir Marg, Delhi",
+        "distance_km": 2.72,
+        "sat_no2_1e15": 13.4288,
+        "sat_qa": 0.74
+      },
+      {
+        "station_id": "DEL_IGI_AIRPORT",
+        "station_name": "IGI Airport (T3), Delhi",
+        "distance_km": 1.34,
+        "sat_no2_1e15": 20.0416,
+        "sat_qa": 1.0
+      },
+      {
+        "station_id": "DEL_RK_PURAM",
+        "station_name": "R K Puram, Delhi",
+        "distance_km": 1.0,
+        "sat_no2_1e15": 18.1814,
+        "sat_qa": 1.0
+      },
+      {
+        "station_id": "DEL_LODHI_ROAD",
+        "station_name": "Lodhi Road, Delhi",
+        "distance_km": 2.88,
+        "sat_no2_1e15": 20.306,
+        "sat_qa": 1.0
+      },
+      {
+        "station_id": "DEL_JAHANGIRPURI",
+        "station_name": "Jahangirpuri, Delhi",
+        "distance_km": 2.8,
+        "sat_no2_1e15": 10.4742,
+        "sat_qa": 0.74
+      },
+      {
+        "station_id": "DEL_BAWANA",
+        "station_name": "Bawana Industrial Area, Delhi",
+        "distance_km": 1.87,
+        "sat_no2_1e15": 6.2792,
+        "sat_qa": 0.74
+      },
+      {
+        "station_id": "DEL_OKHLA_PH2",
+        "station_name": "Okhla Phase-2, Delhi",
+        "distance_km": 1.29,
+        "sat_no2_1e15": 20.7277,
+        "sat_qa": 1.0
+      },
+      {
+        "station_id": "NOI_SEC_62",
+        "station_name": "Sector 62, Noida",
+        "distance_km": 1.25,
+        "sat_no2_1e15": 9.5045,
+        "sat_qa": 0.74
+      },
+      {
+        "station_id": "GGN_SEC_51",
+        "station_name": "Sector 51, Gurugram",
+        "distance_km": 1.8,
+        "sat_no2_1e15": 16.1835,
+        "sat_qa": 1.0
+      },
+      {
+        "station_id": "GZB_SANJAY_NAGAR",
+        "station_name": "Sanjay Nagar, Ghaziabad",
+        "distance_km": 2.06,
+        "sat_no2_1e15": 4.4252,
+        "sat_qa": 0.74
+      },
+      {
+        "station_id": "FBD_SEC_16A",
+        "station_name": "Sector 16A, Faridabad",
+        "distance_km": 2.5,
+        "sat_no2_1e15": 14.4806,
+        "sat_qa": 1.0
+      },
+      {
+        "station_id": "DEL_WAZIRPUR",
+        "station_name": "Wazirpur, Delhi",
+        "distance_km": 2.1,
+        "sat_no2_1e15": 10.4742,
+        "sat_qa": 0.74
+      },
+      {
+        "station_id": "DEL_ROHINI_SEC16",
+        "station_name": "Rohini Sector 16, Delhi",
+        "distance_km": 2.55,
+        "sat_no2_1e15": 7.1434,
+        "sat_qa": 0.74
+      },
+      {
+        "station_id": "DEL_ITO",
+        "station_name": "ITO, Delhi",
+        "distance_km": 1.38,
+        "sat_no2_1e15": 17.0999,
+        "sat_qa": 1.0
+      },
+      {
+        "station_id": "DEL_CONNAUGHT_PLACE",
+        "station_name": "Connaught Place, Delhi",
+        "distance_km": 2.37,
+        "sat_no2_1e15": 16.9228,
+        "sat_qa": 1.0
+      }
+    ]
+  },
+  {
+    "granule_name": "S5P_OFFL_L2__NO2____20240105T062859_20240105T081029_32275_03_020600_20240106T223933.nc",
+    "acquisition_date": "2024-01-05",
+    "file_size_bytes": 607111860,
+    "valid_delhi_pixels_qa50": 90,
+    "matched_stations_count": 17,
+    "matched_stations": [
+      {
+        "station_id": "DEL_ANAND_VIHAR",
+        "station_name": "Anand Vihar, Delhi",
+        "distance_km": 1.35,
+        "sat_no2_1e15": 13.2819,
+        "sat_qa": 0.74
+      },
+      {
+        "station_id": "DEL_PUNJABI_BAGH",
+        "station_name": "Punjabi Bagh, Delhi",
+        "distance_km": 2.91,
+        "sat_no2_1e15": 19.4756,
+        "sat_qa": 0.74
+      },
+      {
+        "station_id": "DEL_MANDIR_MARG",
+        "station_name": "Mandir Marg, Delhi",
+        "distance_km": 1.6,
+        "sat_no2_1e15": 14.6062,
+        "sat_qa": 0.74
+      },
+      {
+        "station_id": "DEL_IGI_AIRPORT",
+        "station_name": "IGI Airport (T3), Delhi",
+        "distance_km": 3.11,
+        "sat_no2_1e15": 5.2972,
+        "sat_qa": 0.74
+      },
+      {
+        "station_id": "DEL_RK_PURAM",
+        "station_name": "R K Puram, Delhi",
+        "distance_km": 3.48,
+        "sat_no2_1e15": 9.831,
+        "sat_qa": 0.74
+      },
+      {
+        "station_id": "DEL_LODHI_ROAD",
+        "station_name": "Lodhi Road, Delhi",
+        "distance_km": 2.1,
+        "sat_no2_1e15": 9.831,
+        "sat_qa": 0.74
+      },
+      {
+        "station_id": "DEL_JAHANGIRPURI",
+        "station_name": "Jahangirpuri, Delhi",
+        "distance_km": 2.03,
+        "sat_no2_1e15": 20.9451,
+        "sat_qa": 0.74
+      },
+      {
+        "station_id": "DEL_BAWANA",
+        "station_name": "Bawana Industrial Area, Delhi",
+        "distance_km": 2.44,
+        "sat_no2_1e15": 16.0209,
+        "sat_qa": 0.74
+      },
+      {
+        "station_id": "DEL_OKHLA_PH2",
+        "station_name": "Okhla Phase-2, Delhi",
+        "distance_km": 2.82,
+        "sat_no2_1e15": 7.5093,
+        "sat_qa": 0.74
+      },
+      {
+        "station_id": "NOI_SEC_62",
+        "station_name": "Sector 62, Noida",
+        "distance_km": 4.1,
+        "sat_no2_1e15": 13.2819,
+        "sat_qa": 0.74
+      },
+      {
+        "station_id": "GGN_SEC_51",
+        "station_name": "Sector 51, Gurugram",
+        "distance_km": 3.28,
+        "sat_no2_1e15": 5.549,
+        "sat_qa": 0.74
+      },
+      {
+        "station_id": "GZB_SANJAY_NAGAR",
+        "station_name": "Sanjay Nagar, Ghaziabad",
+        "distance_km": 0.31,
+        "sat_no2_1e15": 8.3566,
+        "sat_qa": 0.74
+      },
+      {
+        "station_id": "FBD_SEC_16A",
+        "station_name": "Sector 16A, Faridabad",
+        "distance_km": 1.97,
+        "sat_no2_1e15": 5.7061,
+        "sat_qa": 0.74
+      },
+      {
+        "station_id": "DEL_WAZIRPUR",
+        "station_name": "Wazirpur, Delhi",
+        "distance_km": 1.2,
+        "sat_no2_1e15": 20.62,
+        "sat_qa": 0.74
+      },
+      {
+        "station_id": "DEL_ROHINI_SEC16",
+        "station_name": "Rohini Sector 16, Delhi",
+        "distance_km": 3.03,
+        "sat_no2_1e15": 20.9451,
+        "sat_qa": 0.74
+      },
+      {
+        "station_id": "DEL_ITO",
+        "station_name": "ITO, Delhi",
+        "distance_km": 2.61,
+        "sat_no2_1e15": 12.0046,
+        "sat_qa": 0.74
+      },
+      {
+        "station_id": "DEL_CONNAUGHT_PLACE",
+        "station_name": "Connaught Place, Delhi",
+        "distance_km": 3.36,
+        "sat_no2_1e15": 14.6062,
+        "sat_qa": 0.74
+      }
+    ]
+  },
+  {
+    "granule_name": "S5P_OFFL_L2__NO2____20240107T073230_20240107T091400_32304_03_020600_20240108T234415.nc",
+    "acquisition_date": "2024-01-07",
+    "file_size_bytes": 608007396,
+    "valid_delhi_pixels_qa50": 76,
+    "matched_stations_count": 17,
+    "matched_stations": [
+      {
+        "station_id": "DEL_ANAND_VIHAR",
+        "station_name": "Anand Vihar, Delhi",
+        "distance_km": 3.48,
+        "sat_no2_1e15": 16.9348,
+        "sat_qa": 1.0
+      },
+      {
+        "station_id": "DEL_PUNJABI_BAGH",
+        "station_name": "Punjabi Bagh, Delhi",
+        "distance_km": 2.58,
+        "sat_no2_1e15": 14.591,
+        "sat_qa": 1.0
+      },
+      {
+        "station_id": "DEL_MANDIR_MARG",
+        "station_name": "Mandir Marg, Delhi",
+        "distance_km": 1.42,
+        "sat_no2_1e15": 16.9681,
+        "sat_qa": 1.0
+      },
+      {
+        "station_id": "DEL_IGI_AIRPORT",
+        "station_name": "IGI Airport (T3), Delhi",
+        "distance_km": 2.87,
+        "sat_no2_1e15": 12.4106,
+        "sat_qa": 1.0
+      },
+      {
+        "station_id": "DEL_RK_PURAM",
+        "station_name": "R K Puram, Delhi",
+        "distance_km": 2.61,
+        "sat_no2_1e15": 16.2623,
+        "sat_qa": 1.0
+      },
+      {
+        "station_id": "DEL_LODHI_ROAD",
+        "station_name": "Lodhi Road, Delhi",
+        "distance_km": 1.86,
+        "sat_no2_1e15": 16.2623,
+        "sat_qa": 1.0
+      },
+      {
+        "station_id": "DEL_JAHANGIRPURI",
+        "station_name": "Jahangirpuri, Delhi",
+        "distance_km": 1.69,
+        "sat_no2_1e15": 12.1741,
+        "sat_qa": 1.0
+      },
+      {
+        "station_id": "DEL_BAWANA",
+        "station_name": "Bawana Industrial Area, Delhi",
+        "distance_km": 3.56,
+        "sat_no2_1e15": 6.9644,
+        "sat_qa": 1.0
+      },
+      {
+        "station_id": "DEL_OKHLA_PH2",
+        "station_name": "Okhla Phase-2, Delhi",
+        "distance_km": 3.56,
+        "sat_no2_1e15": 13.9724,
+        "sat_qa": 1.0
+      },
+      {
+        "station_id": "NOI_SEC_62",
+        "station_name": "Sector 62, Noida",
+        "distance_km": 1.45,
+        "sat_no2_1e15": 15.4893,
+        "sat_qa": 1.0
+      },
+      {
+        "station_id": "GGN_SEC_51",
+        "station_name": "Sector 51, Gurugram",
+        "distance_km": 1.09,
+        "sat_no2_1e15": 5.109,
+        "sat_qa": 1.0
+      },
+      {
+        "station_id": "GZB_SANJAY_NAGAR",
+        "station_name": "Sanjay Nagar, Ghaziabad",
+        "distance_km": 0.88,
+        "sat_no2_1e15": 9.101,
+        "sat_qa": 1.0
+      },
+      {
+        "station_id": "FBD_SEC_16A",
+        "station_name": "Sector 16A, Faridabad",
+        "distance_km": 2.54,
+        "sat_no2_1e15": 7.1064,
+        "sat_qa": 1.0
+      },
+      {
+        "station_id": "DEL_WAZIRPUR",
+        "station_name": "Wazirpur, Delhi",
+        "distance_km": 2.97,
+        "sat_no2_1e15": 12.1741,
+        "sat_qa": 1.0
+      },
+      {
+        "station_id": "DEL_ROHINI_SEC16",
+        "station_name": "Rohini Sector 16, Delhi",
+        "distance_km": 2.8,
+        "sat_no2_1e15": 11.5641,
+        "sat_qa": 1.0
+      },
+      {
+        "station_id": "DEL_ITO",
+        "station_name": "ITO, Delhi",
+        "distance_km": 3.92,
+        "sat_no2_1e15": 16.9681,
+        "sat_qa": 1.0
+      },
+      {
+        "station_id": "DEL_CONNAUGHT_PLACE",
+        "station_name": "Connaught Place, Delhi",
+        "distance_km": 1.74,
+        "sat_no2_1e15": 16.9681,
+        "sat_qa": 1.0
+      }
+    ]
+  },
+  {
+    "granule_name": "S5P_OFFL_L2__NO2____20240110T063532_20240110T081702_32346_03_020600_20240111T224348.nc",
+    "acquisition_date": "2024-01-10",
+    "file_size_bytes": 606445371,
+    "valid_delhi_pixels_qa50": 113,
+    "matched_stations_count": 17,
+    "matched_stations": [
+      {
+        "station_id": "DEL_ANAND_VIHAR",
+        "station_name": "Anand Vihar, Delhi",
+        "distance_km": 2.47,
+        "sat_no2_1e15": 7.7277,
+        "sat_qa": 0.74
+      },
+      {
+        "station_id": "DEL_PUNJABI_BAGH",
+        "station_name": "Punjabi Bagh, Delhi",
+        "distance_km": 1.43,
+        "sat_no2_1e15": 5.1523,
+        "sat_qa": 0.74
+      },
+      {
+        "station_id": "DEL_MANDIR_MARG",
+        "station_name": "Mandir Marg, Delhi",
+        "distance_km": 0.94,
+        "sat_no2_1e15": 9.3216,
+        "sat_qa": 1.0
+      },
+      {
+        "station_id": "DEL_IGI_AIRPORT",
+        "station_name": "IGI Airport (T3), Delhi",
+        "distance_km": 2.1,
+        "sat_no2_1e15": 6.6452,
+        "sat_qa": 1.0
+      },
+      {
+        "station_id": "DEL_RK_PURAM",
+        "station_name": "R K Puram, Delhi",
+        "distance_km": 1.48,
+        "sat_no2_1e15": 8.594,
+        "sat_qa": 1.0
+      },
+      {
+        "station_id": "DEL_LODHI_ROAD",
+        "station_name": "Lodhi Road, Delhi",
+        "distance_km": 0.47,
+        "sat_no2_1e15": 10.446,
+        "sat_qa": 1.0
+      },
+      {
+        "station_id": "DEL_JAHANGIRPURI",
+        "station_name": "Jahangirpuri, Delhi",
+        "distance_km": 0.63,
+        "sat_no2_1e15": 4.0632,
+        "sat_qa": 0.74
+      },
+      {
+        "station_id": "DEL_BAWANA",
+        "station_name": "Bawana Industrial Area, Delhi",
+        "distance_km": 2.02,
+        "sat_no2_1e15": 2.5891,
+        "sat_qa": 0.74
+      },
+      {
+        "station_id": "DEL_OKHLA_PH2",
+        "station_name": "Okhla Phase-2, Delhi",
+        "distance_km": 3.08,
+        "sat_no2_1e15": 11.2817,
+        "sat_qa": 1.0
+      },
+      {
+        "station_id": "NOI_SEC_62",
+        "station_name": "Sector 62, Noida",
+        "distance_km": 2.13,
+        "sat_no2_1e15": 9.7431,
+        "sat_qa": 1.0
+      },
+      {
+        "station_id": "GGN_SEC_51",
+        "station_name": "Sector 51, Gurugram",
+        "distance_km": 2.58,
+        "sat_no2_1e15": 6.2118,
+        "sat_qa": 1.0
+      },
+      {
+        "station_id": "GZB_SANJAY_NAGAR",
+        "station_name": "Sanjay Nagar, Ghaziabad",
+        "distance_km": 2.98,
+        "sat_no2_1e15": 3.1063,
+        "sat_qa": 0.74
+      },
+      {
+        "station_id": "FBD_SEC_16A",
+        "station_name": "Sector 16A, Faridabad",
+        "distance_km": 2.15,
+        "sat_no2_1e15": 11.6414,
+        "sat_qa": 1.0
+      },
+      {
+        "station_id": "DEL_WAZIRPUR",
+        "station_name": "Wazirpur, Delhi",
+        "distance_km": 3.29,
+        "sat_no2_1e15": 5.5153,
+        "sat_qa": 0.74
+      },
+      {
+        "station_id": "DEL_ROHINI_SEC16",
+        "station_name": "Rohini Sector 16, Delhi",
+        "distance_km": 2.26,
+        "sat_no2_1e15": 3.8168,
+        "sat_qa": 0.74
+      },
+      {
+        "station_id": "DEL_ITO",
+        "station_name": "ITO, Delhi",
+        "distance_km": 3.2,
+        "sat_no2_1e15": 9.3216,
+        "sat_qa": 1.0
+      },
+      {
+        "station_id": "DEL_CONNAUGHT_PLACE",
+        "station_name": "Connaught Place, Delhi",
+        "distance_km": 0.82,
+        "sat_no2_1e15": 9.3216,
+        "sat_qa": 1.0
+      }
+    ]
+  },
+  {
+    "granule_name": "S5P_OFFL_L2__NO2____20240520T073226_20240520T091356_34205_03_020600_20240521T233529.nc",
+    "acquisition_date": "2024-05-20",
+    "file_size_bytes": 612563072,
+    "valid_delhi_pixels_qa50": 112,
+    "matched_stations_count": 17,
+    "matched_stations": [
+      {
+        "station_id": "DEL_ANAND_VIHAR",
+        "station_name": "Anand Vihar, Delhi",
+        "distance_km": 1.69,
+        "sat_no2_1e15": 6.6796,
+        "sat_qa": 1.0
+      },
+      {
+        "station_id": "DEL_PUNJABI_BAGH",
+        "station_name": "Punjabi Bagh, Delhi",
+        "distance_km": 2.67,
+        "sat_no2_1e15": 5.3791,
+        "sat_qa": 1.0
+      },
+      {
+        "station_id": "DEL_MANDIR_MARG",
+        "station_name": "Mandir Marg, Delhi",
+        "distance_km": 2.0,
+        "sat_no2_1e15": 5.6832,
+        "sat_qa": 1.0
+      },
+      {
+        "station_id": "DEL_IGI_AIRPORT",
+        "station_name": "IGI Airport (T3), Delhi",
+        "distance_km": 3.01,
+        "sat_no2_1e15": 5.2568,
+        "sat_qa": 1.0
+      },
+      {
+        "station_id": "DEL_RK_PURAM",
+        "station_name": "R K Puram, Delhi",
+        "distance_km": 2.15,
+        "sat_no2_1e15": 5.6372,
+        "sat_qa": 1.0
+      },
+      {
+        "station_id": "DEL_LODHI_ROAD",
+        "station_name": "Lodhi Road, Delhi",
+        "distance_km": 1.22,
+        "sat_no2_1e15": 6.0641,
+        "sat_qa": 1.0
+      },
+      {
+        "station_id": "DEL_JAHANGIRPURI",
+        "station_name": "Jahangirpuri, Delhi",
+        "distance_km": 2.77,
+        "sat_no2_1e15": 4.3138,
+        "sat_qa": 1.0
+      },
+      {
+        "station_id": "DEL_BAWANA",
+        "station_name": "Bawana Industrial Area, Delhi",
+        "distance_km": 2.26,
+        "sat_no2_1e15": 4.4599,
+        "sat_qa": 1.0
+      },
+      {
+        "station_id": "DEL_OKHLA_PH2",
+        "station_name": "Okhla Phase-2, Delhi",
+        "distance_km": 3.36,
+        "sat_no2_1e15": 6.5298,
+        "sat_qa": 1.0
+      },
+      {
+        "station_id": "NOI_SEC_62",
+        "station_name": "Sector 62, Noida",
+        "distance_km": 3.05,
+        "sat_no2_1e15": 6.7527,
+        "sat_qa": 1.0
+      },
+      {
+        "station_id": "GGN_SEC_51",
+        "station_name": "Sector 51, Gurugram",
+        "distance_km": 2.0,
+        "sat_no2_1e15": 5.9087,
+        "sat_qa": 1.0
+      },
+      {
+        "station_id": "GZB_SANJAY_NAGAR",
+        "station_name": "Sanjay Nagar, Ghaziabad",
+        "distance_km": 2.38,
+        "sat_no2_1e15": 5.6975,
+        "sat_qa": 1.0
+      },
+      {
+        "station_id": "FBD_SEC_16A",
+        "station_name": "Sector 16A, Faridabad",
+        "distance_km": 0.8,
+        "sat_no2_1e15": 6.2884,
+        "sat_qa": 1.0
+      },
+      {
+        "station_id": "DEL_WAZIRPUR",
+        "station_name": "Wazirpur, Delhi",
+        "distance_km": 1.82,
+        "sat_no2_1e15": 5.3791,
+        "sat_qa": 1.0
+      },
+      {
+        "station_id": "DEL_ROHINI_SEC16",
+        "station_name": "Rohini Sector 16, Delhi",
+        "distance_km": 2.03,
+        "sat_no2_1e15": 4.4269,
+        "sat_qa": 1.0
+      },
+      {
+        "station_id": "DEL_ITO",
+        "station_name": "ITO, Delhi",
+        "distance_km": 3.24,
+        "sat_no2_1e15": 5.6832,
+        "sat_qa": 1.0
+      },
+      {
+        "station_id": "DEL_CONNAUGHT_PLACE",
+        "station_name": "Connaught Place, Delhi",
+        "distance_km": 1.79,
+        "sat_no2_1e15": 5.6832,
+        "sat_qa": 1.0
+      }
+    ]
+  }
+]

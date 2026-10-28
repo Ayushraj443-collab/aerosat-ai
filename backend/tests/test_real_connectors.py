@@ -30,11 +30,20 @@ def test_sentinel5p_catalogue_discovery():
 
 def test_sentinel5p_download_blocked_without_credentials():
     """Verify that downloading a granule binary without credentials is reported as BLOCKED with instructions."""
-    res = CopernicusSentinel5PConnector.download_product(
-        product_id="dummy-product-id"
-    )
-    assert res["status"] == "BLOCKED"
-    assert "COPERNICUS_CLIENT_ID" in res["message"] or "Credentials missing" in res["message"]
+    from app.config import settings
+    old_id = settings.COPERNICUS_CLIENT_ID
+    old_secret = settings.COPERNICUS_CLIENT_SECRET
+    try:
+        settings.COPERNICUS_CLIENT_ID = ""
+        settings.COPERNICUS_CLIENT_SECRET = ""
+        res = CopernicusSentinel5PConnector.download_product(
+            product_id="dummy-product-id"
+        )
+        assert res["status"] == "BLOCKED"
+        assert "COPERNICUS_CLIENT_ID" in res["message"] or "Credentials missing" in res["message"]
+    finally:
+        settings.COPERNICUS_CLIENT_ID = old_id
+        settings.COPERNICUS_CLIENT_SECRET = old_secret
 
 def test_open_meteo_weather_connector():
     """Verify live Open-Meteo ERA5 / NWP weather query."""

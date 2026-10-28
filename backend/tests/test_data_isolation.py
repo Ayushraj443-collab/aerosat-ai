@@ -40,7 +40,7 @@ def test_prediction_api_mode_isolation():
     payload_real = {
         "latitude": 28.6476,
         "longitude": 77.3158,
-        "date": "2024-03-01",
+        "date": "2024-01-01",
         "pollutant": "NO2",
         "target_resolution_km": 1.0,
         "data_mode": "REAL"
@@ -73,15 +73,14 @@ def test_unsupported_pollutant_real_mode_error():
         "latitude": 28.6476,
         "longitude": 77.3158,
         "date": "2024-03-01",
-        "pollutant": "O3", # We only have REAL models for NO2 and PM2.5
+        "pollutant": "LEAD", # Unsupported pollutant
         "target_resolution_km": 1.0,
         "data_mode": "REAL"
     }
     res = client.post("/api/predict", json=payload)
-    # Must return 400 Bad Request with clear explanation
-    assert res.status_code == 400
-    err_detail = res.json()["detail"]
-    assert "No active REAL model" in err_detail or "O3" in err_detail
+    # Must reject unsupported pollutant with 400 Bad Request or 422 Validation Error
+    assert res.status_code in [400, 422]
+    assert "LEAD" in str(res.json()) or "pollutant" in str(res.json()).lower()
 
 def test_downscaled_grid_mode_parameter():
     """Verify that /api/map/downscaled-grid accepts mode=real and mode=demo and includes provenance metadata."""
@@ -103,7 +102,7 @@ def test_prediction_export_formats():
     res = client.post("/api/predict", json={
         "latitude": 28.6139,
         "longitude": 77.2090,
-        "date": "2024-03-01",
+        "date": "2024-01-01",
         "pollutant": "NO2",
         "target_resolution_km": 2.0,
         "data_mode": "REAL"

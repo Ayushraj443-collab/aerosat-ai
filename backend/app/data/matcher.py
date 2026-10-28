@@ -152,7 +152,7 @@ class SpatiotemporalMatcher:
                     "longitude": matched_gnd.get("longitude"),
                     "ground_value": float(matched_gnd.get("ground_value")),
                     "ground_unit": matched_gnd.get("unit", "µg/m³"),
-                    "satellite_column": float(sat.get("satellite_column", 0.0)),
+                    "satellite_column": float(sat["satellite_column"]) if sat.get("satellite_column") not in (None, "") else None,
                     "satellite_unit": sat.get("unit", "10¹⁵ molec/cm²"),
                     "satellite_qa": sat_qa,
                     "spatial_distance_km": round(dist_km, 3),

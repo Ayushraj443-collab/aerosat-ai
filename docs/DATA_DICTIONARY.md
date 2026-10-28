@@ -158,9 +158,35 @@ CREATE TABLE observations (
     elevation_m REAL,                  -- Surface elevation MSL (m)
     road_density_proxy REAL,           -- Proximity-weighted road index
     quality_flag REAL DEFAULT 1.0,     -- Validation flag (1.0 = valid)
-    dataset_version TEXT               -- Upstream product or release version
+    dataset_version TEXT,              -- Upstream product or release version
+    observation_type TEXT DEFAULT 'GROUND_MONITOR', -- DIRECT_SATELLITE, GROUND_MONITOR, CAMS_REANALYSIS, VERIFIED_COLLOCATION, SYNTHETIC_DEMO
+    is_verified_collocation INTEGER DEFAULT 0       -- 1 if genuine satellite-ground match, 0 otherwise
 );
+
+CREATE INDEX idx_obs_type ON observations(observation_type);
+CREATE INDEX idx_obs_verified ON observations(is_verified_collocation);
 ```
+
+#### Observation Provenance Taxonomies (`observation_type`):
+1. **`VERIFIED_COLLOCATION`** (`is_verified_collocation = 1`):
+   - Genuine satellite–ground collocated pairs.
+   - Sentinel-5P OFFL L2 column collocated within 5.5 km spatial radius and overpass temporal window ($\pm 3$ hours) of an active CPCB CAAQMS ground station with $\text{QA} \ge 0.50$.
+   - **Current Count:** 7 records in `data/satellite_aq.db`.
+2. **`GROUND_MONITOR`** (`is_verified_collocation = 0`):
+   - Official ground-level in-situ reference monitors from the Central Pollution Control Board (CPCB) CAAQMS network.
+   - Contains surface concentration (`ground_value`) with `satellite_column = NULL`.
+   - **Current Count:** 52 records in `data/satellite_aq.db`.
+3. **`CAMS_REANALYSIS`** (`is_verified_collocation = 0`):
+   - Numerical atmospheric model reanalysis estimates from the Copernicus Atmosphere Monitoring Service (CAMS).
+   - Never treated as direct satellite observations or ground reference monitors.
+   - **Current Count:** 448 records in `data/satellite_aq.db`.
+4. **`DIRECT_SATELLITE`** (`is_verified_collocation = 0`):
+   - Raw spaceborne spectrometer pixel retrievals from Sentinel-5P Level-2 granules without ground collocation.
+   - 4 full granules (>2.3 GB) stored locally in `data/raw/sentinel5p/`.
+   - **Current Count in DB:** 0 (stored in NetCDF files, parsed on-demand or through `/api/data/satellite/ingestion-report`).
+5. **`SYNTHETIC_DEMO`** (`is_verified_collocation = 0`):
+   - Calibrated physical simulation data generated strictly for offline demonstration and testing.
+   - Isolated under `data_mode = 'DEMO'` (1,200 records in `data/raw/synthetic_sentinel5p_cpcb_pairs.csv`). Never mixed into REAL training or evaluation.
 
 ### Table: `connector_status`
 Tracks live API health, authentication states, record counts, and errors for genuine data connectors.

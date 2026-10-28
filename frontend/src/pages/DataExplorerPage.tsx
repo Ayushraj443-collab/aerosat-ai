@@ -15,7 +15,8 @@ import {
   Zap,
   Key,
   Lock,
-  Globe
+  Globe,
+  Info
 } from 'lucide-react';
 import { api } from '../services/api';
 import type {
@@ -39,9 +40,13 @@ export const DataExplorerPage: React.FC<DataExplorerPageProps> = ({ dataMode, on
   const [observations, setObservations] = useState<ObservationRecord[]>([]);
   const [connectors, setConnectors] = useState<ConnectorStatusItem[]>([]);
   const [datasets, setDatasets] = useState<any[]>([]);
+  const [provenanceSummary, setProvenanceSummary] = useState<any>(null);
+  const [ingestionReport, setIngestionReport] = useState<any>(null);
 
   // Filter states
   const [obsPollutant, setObsPollutant] = useState<string>('NO2');
+  const [obsDate, setObsDate] = useState<string>('');
+  const [obsProvenanceType, setObsProvenanceType] = useState<string>('ALL');
   const [obsLimit, setObsLimit] = useState<number>(50);
 
   // Copernicus OAuth Diagnostic State
@@ -82,13 +87,36 @@ export const DataExplorerPage: React.FC<DataExplorerPageProps> = ({ dataMode, on
     loadConnectors();
     loadStations();
     loadDatasets();
+    loadProvenanceSummary();
+    loadIngestionReport();
   }, [dataMode]);
 
   useEffect(() => {
     if (activeTab === 'observations') {
       loadObservations();
+      loadProvenanceSummary();
+    } else if (activeTab === 'connectors') {
+      loadIngestionReport();
     }
-  }, [activeTab, obsPollutant, obsLimit, dataMode]);
+  }, [activeTab, obsPollutant, obsDate, obsLimit, obsProvenanceType, dataMode]);
+
+  async function loadProvenanceSummary() {
+    try {
+      const res = await api.getProvenanceSummary(dataMode);
+      setProvenanceSummary(res.summary);
+    } catch (err) {
+      console.error('Failed to load provenance summary:', err);
+    }
+  }
+
+  async function loadIngestionReport() {
+    try {
+      const res = await api.getSatelliteIngestionReport();
+      setIngestionReport(res);
+    } catch (err) {
+      console.error('Failed to load ingestion report:', err);
+    }
+  }
 
   async function loadConnectors() {
     try {
@@ -111,9 +139,14 @@ export const DataExplorerPage: React.FC<DataExplorerPageProps> = ({ dataMode, on
   async function loadObservations() {
     try {
       setLoading(true);
+      const isMatched = obsProvenanceType === 'VERIFIED_COLLOCATION';
+      const obsTypeParam = obsProvenanceType === 'ALL' ? undefined : obsProvenanceType;
       const data = await api.getObservations({
         mode: dataMode,
+        date: obsDate || undefined,
         pollutant: obsPollutant,
+        observation_type: obsTypeParam,
+        matched_only: obsProvenanceType === 'ALL' ? false : isMatched,
         limit: obsLimit,
       });
       setObservations(data);
@@ -238,10 +271,10 @@ export const DataExplorerPage: React.FC<DataExplorerPageProps> = ({ dataMode, on
         <div>
           <h1 className="text-2xl font-bold tracking-tight text-white flex items-center gap-2.5">
             <Database className="w-6 h-6 text-cyan-400" />
-            <span>Geospatial Data Explorer & Verified Ingestion Engine</span>
+            <span>Sentinel-5P Satellite & CPCB Ground Observations</span>
           </h1>
           <p className="text-xs text-slate-400 mt-1">
-            Audit ground sensors, execute live spaceborne OData granule discovery, and inspect scientifically matched observations.
+            Official P19 Dataset Repository: Spaceborne tropospheric NO₂ columns paired with continuous ambient CPCB monitoring stations.
           </p>
         </div>
 
@@ -340,7 +373,7 @@ export const DataExplorerPage: React.FC<DataExplorerPageProps> = ({ dataMode, on
       {activeTab === 'observations' && (
         <div className="bg-navy-900/80 border border-slate-800 rounded-2xl p-6 space-y-4 shadow-xl">
           <div className="flex flex-wrap items-center justify-between gap-3 border-b border-slate-800 pb-3">
-            <div className="flex items-center gap-3">
+            <div className="flex flex-wrap items-center gap-3">
               <span className="text-xs text-slate-400 font-medium">Filter Pollutant:</span>
               <div className="flex items-center bg-slate-950 p-1 rounded-lg border border-slate-800">
                 {['NO2', 'PM2.5', 'SO2', 'CO', 'O3'].map((p) => (
@@ -356,6 +389,74 @@ export const DataExplorerPage: React.FC<DataExplorerPageProps> = ({ dataMode, on
                     {p}
                   </button>
                 ))}
+              </div>
+
+          {/* Dynamic Database Provenance Accounting Strip */}
+          {isReal && provenanceSummary && (
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 bg-slate-950/80 border border-slate-800 p-3.5 rounded-xl font-mono text-xs shadow-inner">
+              <div className="space-y-0.5">
+                <span className="text-[10px] text-slate-400 uppercase tracking-wider block">Verified Collocations</span>
+                <span className="text-base font-bold text-emerald-400">{provenanceSummary.verified_collocations_count}</span>
+                <span className="text-[10px] text-slate-500 block">S5P L2 + CPCB Pairs</span>
+              </div>
+              <div className="space-y-0.5">
+                <span className="text-[10px] text-slate-400 uppercase tracking-wider block">CPCB Ground Monitors</span>
+                <span className="text-base font-bold text-cyan-400">{provenanceSummary.ground_monitors_count}</span>
+                <span className="text-[10px] text-slate-500 block">In-situ Reference</span>
+              </div>
+              <div className="space-y-0.5">
+                <span className="text-[10px] text-slate-400 uppercase tracking-wider block">CAMS Reanalyses</span>
+                <span className="text-base font-bold text-teal-400">{provenanceSummary.cams_reanalysis_count}</span>
+                <span className="text-[10px] text-slate-500 block">Atmospheric Model</span>
+              </div>
+              <div className="space-y-0.5">
+                <span className="text-[10px] text-slate-400 uppercase tracking-wider block">Raw L2 Granules</span>
+                <span className="text-base font-bold text-amber-300">{ingestionReport?.total_granules_in_archive ?? 6}</span>
+                <span className="text-[10px] text-slate-500 block">{ingestionReport?.total_archive_size_mb ? `${ingestionReport.total_archive_size_mb} MB Archive` : '>3.65 GB NetCDF'}</span>
+              </div>
+            </div>
+          )}
+
+          <div className="flex flex-wrap items-center gap-2">
+            <span className="text-xs text-slate-400 font-medium">Date:</span>
+            <select
+              aria-label="Filter Observation Date"
+              value={obsDate}
+              onChange={(e) => setObsDate(e.target.value)}
+              className="bg-slate-950 border border-slate-800 rounded px-2.5 py-1 text-xs text-slate-200 font-mono focus:outline-none focus:border-cyan-500"
+            >
+              <option value="">All Matched Dates</option>
+              <option value="2024-01-01">2024-01-01 (Winter Orbit 32219)</option>
+              <option value="2024-01-03">2024-01-03 (Winter Orbit 32247)</option>
+              <option value="2024-01-05">2024-01-05 (Winter Orbit 32275)</option>
+              <option value="2024-01-07">2024-01-07 (Winter Orbit 32304)</option>
+              <option value="2024-01-10">2024-01-10 (Winter Orbit 32349)</option>
+              <option value="2024-05-20">2024-05-20 (Summer Orbit 34205)</option>
+            </select>
+            {obsDate && (
+              <button
+                onClick={() => setObsDate('')}
+                className="text-[10px] text-cyan-400 hover:text-cyan-300 font-mono underline"
+              >
+                Clear
+              </button>
+            )}
+          </div>
+
+              <div className="flex items-center gap-2">
+                <span className="text-xs text-slate-400 font-medium">Type:</span>
+                <select
+                  aria-label="Filter Observation Type"
+                  value={obsProvenanceType}
+                  onChange={(e) => setObsProvenanceType(e.target.value)}
+                  className="bg-slate-950 border border-slate-800 rounded px-2.5 py-1 text-xs text-slate-200 font-mono focus:outline-none focus:border-cyan-500"
+                >
+                  <option value="ALL">All Provenance Types</option>
+                  <option value="VERIFIED_COLLOCATION">Verified S5P-CPCB Collocations</option>
+                  <option value="GROUND_MONITOR">CPCB Ground Monitors</option>
+                  <option value="CAMS_REANALYSIS">CAMS Reanalysis Model</option>
+                  <option value="DIRECT_SATELLITE">Direct Satellite Observations</option>
+                </select>
               </div>
             </div>
 
@@ -393,11 +494,13 @@ export const DataExplorerPage: React.FC<DataExplorerPageProps> = ({ dataMode, on
                 <AlertTriangle className="w-6 h-6" />
               </div>
               <h3 className="text-sm font-bold text-white uppercase tracking-wider font-mono">
-                NO VERIFIED REAL DATA AVAILABLE
+                NO VERIFIED MATCHED OBSERVATIONS AVAILABLE
               </h3>
               <p className="text-xs text-slate-400 leading-relaxed">
-                No verified real observations currently match the selected filter. 
-                Trigger live ingestion from Copernicus Atmosphere (CAMS) or upload an official CPCB CSV.
+                No genuine satellite-ground matched observations match the selected filter ({obsPollutant}{obsDate ? `, ${obsDate}` : ''}).
+                {isReal && obsPollutant !== 'NO2'
+                  ? ' Sentinel-5P Level-2 granules in this project are configured for NO2 tropospheric column matching.'
+                  : ' Select NO2 or an available Sentinel-5P overpass date (e.g. 2024-01-01) to view matched records.'}
               </p>
               <div className="flex justify-center gap-3">
                 <button
@@ -417,23 +520,45 @@ export const DataExplorerPage: React.FC<DataExplorerPageProps> = ({ dataMode, on
               </div>
             </div>
           ) : (
-            <div className="overflow-x-auto">
-              <table className="w-full text-left text-xs">
-                <thead className="bg-slate-950 text-slate-400 uppercase font-mono text-[10px] border-b border-slate-800">
-                  <tr>
-                    <th className="py-2.5 px-3">Date / Time (UTC)</th>
-                    <th className="py-2.5 px-3">Station</th>
-                    <th className="py-2.5 px-3 text-right">Ground ({obsPollutant})</th>
-                    <th className="py-2.5 px-3 text-right">Satellite Column</th>
-                    <th className="py-2.5 px-3 text-right">Sat QA</th>
-                    <th className="py-2.5 px-3 text-right">BLH (m)</th>
-                    <th className="py-2.5 px-3 text-right">Wind (m/s)</th>
-                    <th className="py-2.5 px-3 text-right">Temp (°C)</th>
-                    <th className="py-2.5 px-3">Source Provenance</th>
-                  </tr>
-                </thead>
+            <div className="space-y-3">
+              {/* Scientific Unit Distinction Notice */}
+              <div className="bg-slate-950/80 border border-slate-800 rounded-xl p-3.5 text-xs text-slate-300 flex items-start gap-3 shadow-inner">
+                <Info className="w-4 h-4 text-cyan-400 mt-0.5 flex-shrink-0" />
+                <div className="space-y-1">
+                  <div className="font-semibold text-white flex items-center gap-2">
+                    <span>Measurement Unit Distinction & Modeling Methodology</span>
+                    <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-cyan-950 text-cyan-400 border border-cyan-800/60">
+                      P19 Requirement
+                    </span>
+                  </div>
+                  <p className="text-slate-400 text-[11px] leading-relaxed">
+                    <strong>Sentinel-5P/TROPOMI</strong> measures total atmospheric column density (<code className="text-cyan-300">10¹⁵ molec/cm²</code> or <code className="text-cyan-300">µmol/m²</code>) vertically integrated from surface to top-of-atmosphere. 
+                    In contrast, <strong>CPCB ground stations</strong> measure near-surface ambient breathing concentration (<code className="text-emerald-300">µg/m³</code>). 
+                    These are physically distinct quantities that cannot be compared directly as identical units; the spatial AI model bridges them by fusing column density with boundary layer height, wind ventilation, and topography.
+                  </p>
+                </div>
+              </div>
+
+              <div className="overflow-x-auto">
+                <table className="w-full text-left text-xs">
+                  <thead className="bg-slate-950 text-slate-400 uppercase font-mono text-[10px] border-b border-slate-800">
+                    <tr>
+                      <th className="py-2.5 px-3">Date / Time (UTC)</th>
+                      <th className="py-2.5 px-3">Station</th>
+                      <th className="py-2.5 px-3 text-right">Ground Level (µg/m³)</th>
+                      <th className="py-2.5 px-3 text-right">Satellite Column (10¹⁵ molec/cm²)</th>
+                      <th className="py-2.5 px-3 text-right">Sat QA</th>
+                      <th className="py-2.5 px-3 text-right">BLH (m)</th>
+                      <th className="py-2.5 px-3 text-right">Wind (m/s)</th>
+                      <th className="py-2.5 px-3 text-right">Temp (°C)</th>
+                      <th className="py-2.5 px-3">Type</th>
+                      <th className="py-2.5 px-3">Source Provenance</th>
+                    </tr>
+                  </thead>
                 <tbody className="divide-y divide-slate-800/60 font-mono text-slate-300">
-                  {observations.map((row, idx) => (
+                  {observations.map((row, idx) => {
+                    const oType = row.observation_type || (row.satellite_column && row.ground_value ? 'VERIFIED_COLLOCATION' : 'GROUND_MONITOR');
+                    return (
                     <tr key={idx} className="hover:bg-slate-900/40 transition-colors">
                       <td className="py-2.5 px-3 text-slate-400">{row.observation_time || row.date}</td>
                       <td className="py-2.5 px-3 font-sans text-slate-200 font-medium truncate max-w-xs">
@@ -443,18 +568,44 @@ export const DataExplorerPage: React.FC<DataExplorerPageProps> = ({ dataMode, on
                         {row.ground_value} {row.unit}
                       </td>
                       <td className="py-2.5 px-3 text-right text-slate-200">
-                        {row.satellite_column !== null ? row.satellite_column : '—'}
+                        {row.satellite_column !== null && row.satellite_column !== undefined && Number(row.satellite_column) > 0
+                          ? Number(row.satellite_column).toFixed(4)
+                          : 'N/A'}
                       </td>
                       <td className="py-2.5 px-3 text-right">
                         <span className={`px-1.5 py-0.5 rounded text-[10px] ${
-                          row.satellite_qa && row.satellite_qa >= 0.5 ? 'text-emerald-400 bg-emerald-950/40' : 'text-amber-400 bg-amber-950/40'
+                          row.satellite_qa !== null && row.satellite_qa !== undefined && Number(row.satellite_qa) >= 0.5
+                            ? 'text-emerald-400 bg-emerald-950/40'
+                            : row.satellite_qa !== null && row.satellite_qa !== undefined && Number(row.satellite_qa) > 0
+                            ? 'text-amber-400 bg-amber-950/40'
+                            : 'text-slate-400 bg-slate-900/40'
                         }`}>
-                          {row.satellite_qa !== null ? row.satellite_qa : '—'}
+                          {row.satellite_qa !== null && row.satellite_qa !== undefined && Number(row.satellite_qa) > 0
+                            ? Number(row.satellite_qa).toFixed(2)
+                            : 'N/A'}
                         </span>
                       </td>
                       <td className="py-2.5 px-3 text-right text-slate-400">{row.boundary_layer_height_m || '—'}</td>
                       <td className="py-2.5 px-3 text-right text-slate-400">{row.wind_speed_ms || '—'}</td>
                       <td className="py-2.5 px-3 text-right text-slate-400">{row.temperature_c || '—'}</td>
+                      <td className="py-2.5 px-3">
+                        <span className={`px-2 py-0.5 rounded text-[10px] font-mono border ${
+                          oType === 'VERIFIED_COLLOCATION'
+                            ? 'bg-emerald-950/50 text-emerald-300 border-emerald-800'
+                            : oType === 'CAMS_REANALYSIS'
+                            ? 'bg-purple-950/50 text-purple-300 border-purple-800'
+                            : oType === 'DIRECT_SATELLITE'
+                            ? 'bg-cyan-950/50 text-cyan-300 border-cyan-800'
+                            : oType === 'SYNTHETIC_DEMO'
+                            ? 'bg-amber-950/50 text-amber-300 border-amber-800'
+                            : 'bg-blue-950/50 text-blue-300 border-blue-800'
+                        }`}>
+                          {oType === 'VERIFIED_COLLOCATION' ? 'S5P-CPCB Match' :
+                           oType === 'CAMS_REANALYSIS' ? 'CAMS Model' :
+                           oType === 'DIRECT_SATELLITE' ? 'Direct S5P' :
+                           oType === 'SYNTHETIC_DEMO' ? 'Synthetic' : 'Ground Monitor'}
+                        </span>
+                      </td>
                       <td className="py-2.5 px-3 font-sans text-[11px]">
                         <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded text-[10px] font-mono border ${
                           row.data_mode === 'REAL'
@@ -467,11 +618,13 @@ export const DataExplorerPage: React.FC<DataExplorerPageProps> = ({ dataMode, on
                         </span>
                       </td>
                     </tr>
-                  ))}
+                    );
+                  })}
                 </tbody>
               </table>
             </div>
-          )}
+          </div>
+        )}
         </div>
       )}
 
@@ -865,6 +1018,53 @@ COPERNICUS_AUTH_PROVIDER="auto"`}
               </div>
             )}
 
+            {/* Local Verified Level-2 OFFL Archive Panel */}
+            {ingestionReport && ingestionReport.granules && (
+              <div className="space-y-3 pt-3 border-t border-slate-800">
+                <div className="flex flex-wrap items-center justify-between gap-2">
+                  <span className="text-xs font-bold text-white uppercase tracking-wider flex items-center gap-1.5">
+                    <Database className="w-3.5 h-3.5 text-cyan-400" />
+                    <span>Local Sentinel-5P OFFL L2 Archive ({ingestionReport.total_granules_in_archive} Granules — {ingestionReport.total_archive_size_mb} MB)</span>
+                  </span>
+                  <span className="text-[10px] font-mono text-emerald-400 bg-emerald-950/70 border border-emerald-800 px-2 py-0.5 rounded">
+                    {ingestionReport.verified_collocated_pairs_in_db} Verified Collocations In DB
+                  </span>
+                </div>
+
+                <div className="overflow-x-auto">
+                  <table className="w-full text-left text-[11px] font-mono">
+                    <thead className="bg-slate-950 text-slate-400">
+                      <tr>
+                        <th className="py-1.5 px-2">NetCDF Granule</th>
+                        <th className="py-1.5 px-2">Date</th>
+                        <th className="py-1.5 px-2 text-right">Size</th>
+                        <th className="py-1.5 px-2">Product & Domain</th>
+                        <th className="py-1.5 px-2 text-right">QA Filter</th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-slate-800/60 text-slate-300">
+                      {ingestionReport.granules.map((g: any, i: number) => (
+                        <tr key={i} className="hover:bg-slate-900/40">
+                          <td className="py-1.5 px-2 text-cyan-400 truncate max-w-xs" title={g.filename}>
+                            {g.filename}
+                          </td>
+                          <td className="py-1.5 px-2 text-emerald-300 font-semibold">{g.date}</td>
+                          <td className="py-1.5 px-2 text-right text-slate-200">{g.size_mb} MB</td>
+                          <td className="py-1.5 px-2 text-slate-400 text-[10px] truncate max-w-xs">{g.product}</td>
+                          <td className="py-1.5 px-2 text-right text-teal-400">≥ {g.qa_threshold_applied}</td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+
+                <div className="text-[10px] text-slate-400 bg-slate-950/60 border border-slate-800/80 rounded p-2 flex flex-wrap items-center justify-between gap-1">
+                  <span><strong>Collocation Tolerance:</strong> ≤ {ingestionReport.collocation_criteria?.max_spatial_distance_km} km | Matching: Afternoon Overpass (~13:30 LST)</span>
+                  <span className="text-cyan-400 font-semibold">{ingestionReport.collocation_criteria?.spatial_rationale}</span>
+                </div>
+              </div>
+            )}
+
             {/* Ingestion Trigger Button */}
             <div className="pt-3 border-t border-slate-800 flex flex-wrap items-center justify-between gap-3">
               <div className="text-xs text-slate-400">
@@ -1023,20 +1223,101 @@ COPERNICUS_AUTH_PROVIDER="auto"`}
                     Validation Report: {uploadResult.filename}
                   </h3>
                 </div>
-                <span className={`text-xs font-mono px-2 py-0.5 rounded border ${uploadResult.is_valid ? 'bg-emerald-950 text-emerald-400 border-emerald-800' : 'bg-rose-950 text-rose-400 border-rose-800'}`}>
-                  {uploadResult.is_valid ? 'SCHEMA VALIDATED' : 'VALIDATION WARNINGS'}
-                </span>
+                <div className="flex items-center gap-2">
+                  {uploadResult.already_registered && (
+                    <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-cyan-950 text-cyan-300 border border-cyan-800">
+                      IDEMPOTENT (ALREADY REGISTERED)
+                    </span>
+                  )}
+                  {uploadResult.source_classification && (
+                    <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-slate-900 text-slate-300 border border-slate-750">
+                      {uploadResult.source_classification}
+                    </span>
+                  )}
+                  <span className={`text-xs font-mono px-2 py-0.5 rounded border ${uploadResult.is_valid ? 'bg-emerald-950 text-emerald-400 border-emerald-800' : 'bg-rose-950 text-rose-400 border-rose-800'}`}>
+                    {uploadResult.is_valid ? 'SCHEMA VALIDATED' : 'VALIDATION WARNINGS'}
+                  </span>
+                </div>
               </div>
 
+              {/* Ingestion & Acceptance Counters */}
               <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 text-xs">
                 <div className="bg-slate-950 p-3 rounded-lg border border-slate-850">
-                  <span className="text-slate-400">Total Rows</span>
+                  <span className="text-slate-400">Total Raw Rows</span>
                   <div className="text-base font-bold text-white font-mono">{uploadResult.row_count}</div>
+                  <span className="text-[10px] text-slate-500 block">Raw CSV lines</span>
                 </div>
+                <div className="bg-slate-950 p-3 rounded-lg border border-emerald-900/40">
+                  <span className="text-emerald-400">Accepted Records</span>
+                  <div className="text-base font-bold text-emerald-300 font-mono">
+                    {uploadResult.accepted_records_count ?? uploadResult.row_count}
+                  </div>
+                  <span className="text-[10px] text-emerald-400/70 block">
+                    {uploadResult.pollutant_records_breakdown && Object.keys(uploadResult.pollutant_records_breakdown).length > 1
+                      ? Object.entries(uploadResult.pollutant_records_breakdown).map(([p, cnt]) => `${cnt} ${p}`).join(', ')
+                      : 'Observation records'}
+                  </span>
+                </div>
+                <div className="bg-slate-950 p-3 rounded-lg border border-rose-900/40">
+                  <span className="text-rose-400">Rejected Records</span>
+                  <div className="text-base font-bold text-rose-300 font-mono">
+                    {uploadResult.rejected_records_count ?? 0}
+                  </div>
+                  <span className="text-[10px] text-slate-500 block">Failed QA checks</span>
+                </div>
+                <div className="bg-slate-950 p-3 rounded-lg border border-slate-850">
+                  <span className="text-slate-400">Duplicates Filtered</span>
+                  <div className="text-base font-bold text-amber-300 font-mono">
+                    {uploadResult.duplicate_count ?? 0}
+                  </div>
+                  <span className="text-[10px] text-slate-500 block">Exact station-time dupes</span>
+                </div>
+              </div>
+
+              {/* Station Coordinate Resolution */}
+              {uploadResult.stations_resolved && uploadResult.stations_resolved.length > 0 && (
+                <div className="p-3 bg-slate-950/80 rounded-xl border border-slate-800 space-y-1.5 text-xs">
+                  <div className="text-[11px] font-semibold text-slate-300 flex items-center justify-between">
+                    <span>Resolved CPCB Stations ({uploadResult.stations_resolved.length}):</span>
+                    <span className="text-[10px] text-cyan-400 font-mono">Exact Lat/Lon Lookup</span>
+                  </div>
+                  <div className="flex flex-wrap gap-1.5">
+                    {uploadResult.stations_resolved.map((stn, i) => (
+                      <span key={i} className="px-2 py-0.5 rounded bg-slate-900 border border-slate-750 text-[10px] text-slate-200 font-mono">
+                        {stn}
+                      </span>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {uploadResult.unresolved_stations && uploadResult.unresolved_stations.length > 0 && (
+                <div className="p-3 bg-rose-950/40 rounded-xl border border-rose-800/60 space-y-1.5 text-xs">
+                  <div className="text-[11px] font-semibold text-rose-300">
+                    Unresolved Stations (Rejected to prevent coordinate fabrication):
+                  </div>
+                  <div className="flex flex-wrap gap-1.5">
+                    {uploadResult.unresolved_stations.map((stn, i) => (
+                      <span key={i} className="px-2 py-0.5 rounded bg-rose-900/60 border border-rose-700 text-[10px] text-rose-200 font-mono">
+                        {stn}
+                      </span>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {/* Spatial Bounds & Pollutant */}
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 text-xs">
                 <div className="bg-slate-950 p-3 rounded-lg border border-slate-850">
                   <span className="text-slate-400">Pollutant Detected</span>
                   <div className="text-base font-bold text-cyan-400 font-mono">
                     {uploadResult.pollutant_detected || 'None (Generic)'}
+                  </div>
+                </div>
+                <div className="bg-slate-950 p-3 rounded-lg border border-slate-850">
+                  <span className="text-slate-400">Date Range</span>
+                  <div className="text-[11px] font-mono text-slate-200">
+                    {uploadResult.date_range.start ? `${uploadResult.date_range.start.slice(0, 10)} to ${uploadResult.date_range.end.slice(0, 10)}` : 'N/A'}
                   </div>
                 </div>
                 <div className="bg-slate-950 p-3 rounded-lg border border-slate-850">
@@ -1052,6 +1333,53 @@ COPERNICUS_AUTH_PROVIDER="auto"`}
                   </div>
                 </div>
               </div>
+
+              {/* Detailed Per-Pollutant Breakdown with Counts & Date Ranges */}
+              {uploadResult.pollutants_summary && Object.keys(uploadResult.pollutants_summary).length > 0 && (
+                <div className="p-3.5 bg-slate-950 rounded-xl border border-slate-800 space-y-2 text-xs">
+                  <div className="text-[11px] font-semibold text-slate-300 flex items-center justify-between border-b border-slate-850 pb-1.5">
+                    <span className="flex items-center gap-1.5">
+                      <Table className="w-3.5 h-3.5 text-cyan-400" />
+                      <span>Individual Pollutant Accounting & Date Ranges:</span>
+                    </span>
+                    <span className="text-[10px] text-slate-500 font-mono">Independent Column Verification</span>
+                  </div>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2.5 pt-1">
+                    {Object.entries(uploadResult.pollutants_summary).map(([pol, info]) => (
+                      <div key={pol} className="p-2.5 rounded-lg bg-slate-900/80 border border-slate-800 space-y-1">
+                        <div className="flex items-center justify-between">
+                          <span className="font-bold text-cyan-300 font-mono text-sm">{pol}</span>
+                          <span className="text-[10px] px-1.5 py-0.5 rounded bg-cyan-950 text-cyan-400 font-mono">
+                            {info.count} observations
+                          </span>
+                        </div>
+                        <div className="text-[10px] text-slate-400 font-mono space-y-0.5">
+                          <div>Date Range: <span className="text-slate-200">{info.date_range.start}{info.date_range.end !== info.date_range.start ? ` to ${info.date_range.end}` : ''}</span></div>
+                          {info.min_value !== null && info.max_value !== null && (
+                            <div>Observed: <span className="text-slate-200">{info.min_value} – {info.max_value} {info.unit}</span></div>
+                          )}
+                          <div>Stations: <span className="text-slate-300">{info.stations_count} CAAQMS ({info.stations.slice(0, 3).join(', ')}{info.stations.length > 3 ? '…' : ''})</span></div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {/* Rejection reasons */}
+              {uploadResult.rejection_reasons && Object.keys(uploadResult.rejection_reasons).length > 0 && (
+                <div className="p-3 bg-amber-950/30 rounded-xl border border-amber-800/40 space-y-1.5 text-xs">
+                  <span className="text-xs font-semibold text-amber-300">Rejection Breakdown:</span>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-[11px] text-amber-200">
+                    {Object.entries(uploadResult.rejection_reasons).map(([reason, count]) => (
+                      <div key={reason} className="flex justify-between border-b border-amber-900/40 pb-0.5">
+                        <span className="capitalize">{reason.replace(/_/g, ' ')}:</span>
+                        <span className="font-mono font-bold">{count} records</span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
 
               {uploadResult.validation_messages.length > 0 && (
                 <div className="space-y-1.5">
@@ -1120,16 +1448,52 @@ COPERNICUS_AUTH_PROVIDER="auto"`}
             </div>
 
             {datasets.map((d) => (
-              <div key={d.id} className="p-4 rounded-xl bg-slate-950 border border-slate-800 flex items-center justify-between">
-                <div>
-                  <div className="font-semibold text-slate-200 text-xs">{d.filename}</div>
-                  <div className="text-[11px] text-slate-400 font-mono mt-0.5">
-                    {d.row_count} rows | Uploaded {d.uploaded_at.slice(0, 10)} | Pollutant: {d.pollutant || 'Multi'}
+              <div key={d.id} className="p-4 rounded-xl bg-slate-950 border border-slate-800 flex items-center justify-between gap-4">
+                <div className="space-y-1">
+                  <div className="flex items-center gap-2">
+                    <span className="font-semibold text-slate-200 text-xs">{d.filename}</span>
+                    <span className="text-[10px] text-slate-400 font-mono bg-slate-900 px-1.5 py-0.5 rounded border border-slate-800">
+                      ID: {d.id}
+                    </span>
+                    {d.content_hash && (
+                      <span className="text-[10px] text-cyan-400/80 font-mono bg-cyan-950/30 px-1.5 py-0.5 rounded border border-cyan-800/40" title={d.content_hash}>
+                        sha256:{d.content_hash.slice(0, 10)}…
+                      </span>
+                    )}
                   </div>
+                  <div className="text-[11px] text-slate-400 font-mono">
+                    <span className="text-slate-300 font-semibold">{d.raw_rows_count ?? d.row_count}</span> raw rows 
+                    {' '}→{' '}
+                    <span className="text-emerald-300 font-semibold">{d.accepted_records_count ?? d.row_count}</span> accepted observation records
+                    {' '}| Uploaded {d.uploaded_at ? d.uploaded_at.slice(0, 10) : 'N/A'}
+                    {' '}| Pollutant: <span className="text-cyan-300 font-semibold">{d.pollutant || (d.pollutants && d.pollutants.join(', ')) || 'Multi'}</span>
+                  </div>
+                  {d.pollutants_summary && Object.keys(d.pollutants_summary).length > 0 && (
+                    <div className="flex flex-wrap gap-1.5 pt-1 text-[10px] font-mono">
+                      {Object.entries(d.pollutants_summary).map(([pol, pinfo]: [string, any]) => (
+                        <span key={pol} className="px-2 py-0.5 rounded bg-slate-900 border border-slate-800 text-slate-300">
+                          <strong className="text-cyan-400">{pol}</strong>: {pinfo.count} records ({pinfo.date_range?.start || 'N/A'}{pinfo.date_range?.end && pinfo.date_range.end !== pinfo.date_range.start ? ` to ${pinfo.date_range.end}` : ''})
+                        </span>
+                      ))}
+                    </div>
+                  )}
                 </div>
-                <span className={`text-[10px] font-mono px-2 py-0.5 rounded border ${d.is_valid ? 'text-emerald-400 border-emerald-800/60 bg-emerald-950/30' : 'text-amber-400 border-amber-800/60 bg-amber-950/30'}`}>
-                  {d.is_valid ? 'VALIDATED' : 'FLAGGED'}
-                </span>
+                <div className="flex items-center gap-2 flex-shrink-0">
+                  {d.source_classification && (
+                    <span className={`text-[10px] font-mono px-2 py-0.5 rounded border ${
+                      d.source_classification === 'GENUINE_CPCB_CAAQMS_REPORT'
+                        ? 'text-emerald-400 border-emerald-800/60 bg-emerald-950/40'
+                        : d.source_classification === 'CPCB_CAAQMS_SAMPLE_ARCHIVE'
+                        ? 'text-cyan-400 border-cyan-800/60 bg-cyan-950/40'
+                        : 'text-amber-400 border-amber-800/60 bg-amber-950/40'
+                    }`}>
+                      {d.source_classification.replace(/_/g, ' ')}
+                    </span>
+                  )}
+                  <span className={`text-[10px] font-mono px-2 py-0.5 rounded border ${d.is_valid ? 'text-emerald-400 border-emerald-800/60 bg-emerald-950/30' : 'text-amber-400 border-amber-800/60 bg-amber-950/30'}`}>
+                    {d.is_valid ? 'SCHEMA VALID' : 'FLAGGED'}
+                  </span>
+                </div>
               </div>
             ))}
           </div>

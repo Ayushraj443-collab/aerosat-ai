@@ -17,9 +17,9 @@ export const DemoBanner: React.FC<DemoBannerProps> = ({ dataMode, onToggleMode }
         ? 'bg-emerald-950/50 border-emerald-500/40 text-emerald-200'
         : 'bg-amber-950/40 border-amber-500/30 text-amber-200'
     }`}>
-      <div className="max-w-7xl mx-auto flex flex-col md:flex-row md:items-center justify-between gap-2">
-        <div className="flex items-center gap-2 font-medium">
-          <span className={`flex items-center gap-1.5 px-2 py-0.5 rounded border font-mono uppercase tracking-wider text-[10px] font-bold ${
+      <div className="max-w-7xl mx-auto flex flex-col md:flex-row md:items-center justify-between gap-2.5">
+        <div className="flex flex-wrap items-center gap-2 font-medium">
+          <span className={`flex items-center gap-1.5 px-2 py-0.5 rounded border font-mono uppercase tracking-wider text-[10px] font-bold whitespace-nowrap flex-shrink-0 ${
             isReal
               ? 'bg-emerald-500/20 text-emerald-300 border-emerald-500/40'
               : 'bg-amber-500/20 text-amber-300 border-amber-500/40'
@@ -36,7 +36,7 @@ export const DemoBanner: React.FC<DemoBannerProps> = ({ dataMode, onToggleMode }
               </>
             )}
           </span>
-          <span className="text-slate-300">
+          <span className="text-slate-300 text-xs leading-relaxed">
             {isReal ? (
               <span>
                 Displaying genuine verified observations from <strong className="text-emerald-300">Copernicus CAMS & ERA5</strong>, with live ESA CDSE Sentinel-5P discovery. Zero synthetic substitution.
@@ -49,10 +49,10 @@ export const DemoBanner: React.FC<DemoBannerProps> = ({ dataMode, onToggleMode }
           </span>
         </div>
 
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-3 flex-shrink-0">
           <button
             onClick={() => onToggleMode(isReal ? 'DEMO' : 'REAL')}
-            className={`px-2.5 py-1 rounded text-[11px] font-semibold transition-all border flex items-center gap-1.5 ${
+            className={`px-2.5 py-1 rounded text-[11px] font-semibold transition-all border flex items-center gap-1.5 whitespace-nowrap ${
               isReal
                 ? 'bg-slate-900 border-emerald-500/40 text-emerald-300 hover:bg-slate-800'
                 : 'bg-emerald-600 border-emerald-500 text-white hover:bg-emerald-500 shadow-sm'
@@ -64,7 +64,7 @@ export const DemoBanner: React.FC<DemoBannerProps> = ({ dataMode, onToggleMode }
 
           <button
             onClick={() => setExpanded(!expanded)}
-            className="flex items-center gap-1 text-cyan-400 hover:text-cyan-300 transition-colors underline underline-offset-2"
+            className="flex items-center gap-1 text-cyan-400 hover:text-cyan-300 transition-colors underline underline-offset-2 whitespace-nowrap"
           >
             <Info className="w-3.5 h-3.5" />
             <span>{expanded ? 'Hide Details' : 'Scientific Provenance & Status'}</span>

@@ -1,0 +1,539 @@
+{
+  "model_id": "no2_gradient_boosting_real_20261028_025003",
+  "model_name": "AeroSat-NO2-GRADIENT_BOOSTING-REAL",
+  "target_pollutant": "NO2",
+  "algorithm": "gradient_boosting",
+  "data_mode": "REAL",
+  "training_source": "ESA Copernicus Sentinel-5P (TROPOMI Level-2 OFFL) & CPCB CAAQMS Ground Monitors",
+  "dataset_version": "S5P_L2_TROPOMI_CPCB_PAIRED_V2",
+  "dataset_fingerprint": "dfd8ad519978",
+  "validation_method": "GroupKFold Spatial Cross-Validation by Ground Station (5 Folds, Zero Spatial Leakage)",
+  "is_preliminary": false,
+  "data_limitation_notice": null,
+  "trained_at": "2026-10-28T02:50:03.917060",
+  "train_samples": 30,
+  "val_samples": 38,
+  "mae": 28.26,
+  "rmse": 32.79,
+  "r2": -0.0211,
+  "mean_bias_error": -0.03,
+  "normalized_rmse_pct": 58.7,
+  "baseline_comparison": {
+    "baseline_type": "Nearest Station Inverse-Distance Weighting (IDW)",
+    "baseline_mae": 18.58,
+    "baseline_rmse": 23.84,
+    "baseline_r2": 0.4604,
+    "ml_improvement_mae_pct": -52.1,
+    "ml_improvement_rmse_pct": -37.5
+  },
+  "spatial_validation_folds": [
+    {
+      "fold": 1,
+      "held_out_stations": [
+        "BLR_BTM_LAYOUT",
+        "DEL_ANAND_VIHAR",
+        "DEL_BAWANA",
+        "FBD_SEC_16A",
+        "LDH_PAU_CAMPUS",
+        "MUM_BKC_BANDRA"
+      ],
+      "train_count": 30,
+      "val_count": 8,
+      "mae": 31.3,
+      "rmse": 37.5,
+      "r2": -0.0497
+    },
+    {
+      "fold": 2,
+      "held_out_stations": [
+        "ASR_GOLDEN_TEMPLE",
+        "DDN_CLOCK_TOWER",
+        "DEL_LODHI_ROAD",
+        "DEL_ROHINI_SEC16",
+        "JPR_ADARSH_NAGAR",
+        "NOI_SEC_62"
+      ],
+      "train_count": 30,
+      "val_count": 8,
+      "mae": 29.44,
+      "rmse": 34.73,
+      "r2": -0.0569
+    },
+    {
+      "fold": 3,
+      "held_out_stations": [
+        "AMD_MANINAGAR",
+        "CHE_ALANDUR",
+        "DEL_IGI_AIRPORT",
+        "DEL_RK_PURAM",
+        "GGN_SEC_51",
+        "JAL_CIVIL_HOSPITAL"
+      ],
+      "train_count": 30,
+      "val_count": 8,
+      "mae": 26.83,
+      "rmse": 29.78,
+      "r2": -0.179
+    },
+    {
+      "fold": 4,
+      "held_out_stations": [
+        "CHD_SEC_22",
+        "DEL_OKHLA_PH2",
+        "DEL_PUNJABI_BAGH",
+        "HYD_SANATHNAGAR",
+        "LKO_TALKATORA",
+        "PUN_SHIVAJINAGAR"
+      ],
+      "train_count": 31,
+      "val_count": 7,
+      "mae": 27.8,
+      "rmse": 31.55,
+      "r2": -0.001
+    },
+    {
+      "fold": 5,
+      "held_out_stations": [
+        "BPL_TT_NAGAR",
+        "DEL_CONNAUGHT_PLACE",
+        "DEL_MANDIR_MARG",
+        "GZB_SANJAY_NAGAR",
+        "LKO_GOMTI_NAGAR",
+        "MUM_COLABA_NAVY"
+      ],
+      "train_count": 31,
+      "val_count": 7,
+      "mae": 25.54,
+      "rmse": 29.03,
+      "r2": -0.0202
+    }
+  ],
+  "feature_importances": [
+    {
+      "feature": "satellite_column",
+      "importance": 0.0769
+    },
+    {
+      "feature": "latitude",
+      "importance": 0.0769
+    },
+    {
+      "feature": "longitude",
+      "importance": 0.0769
+    },
+    {
+      "feature": "temperature_c",
+      "importance": 0.0769
+    },
+    {
+      "feature": "relative_humidity_pct",
+      "importance": 0.0769
+    },
+    {
+      "feature": "wind_speed_ms",
+      "importance": 0.0769
+    },
+    {
+      "feature": "wind_direction_deg",
+      "importance": 0.0769
+    },
+    {
+      "feature": "boundary_layer_height_m",
+      "importance": 0.0769
+    },
+    {
+      "feature": "ventilation_index",
+      "importance": 0.0769
+    },
+    {
+      "feature": "elevation_m",
+      "importance": 0.0769
+    },
+    {
+      "feature": "road_density_proxy",
+      "importance": 0.0769
+    },
+    {
+      "feature": "day_sin",
+      "importance": 0.0769
+    },
+    {
+      "feature": "day_cos",
+      "importance": 0.0769
+    }
+  ],
+  "observed_vs_predicted": [
+    {
+      "index": 0,
+      "observed": 62.1,
+      "predicted": 54.13,
+      "error": -7.97,
+      "date": "2024-01-10T07:45:00Z",
+      "station": "Anand Vihar, Delhi"
+    },
+    {
+      "index": 1,
+      "observed": 41.8,
+      "predicted": 56.6,
+      "error": 14.8,
+      "date": "2024-01-10T07:45:00Z",
+      "station": "Connaught Place, Delhi"
+    },
+    {
+      "index": 2,
+      "observed": 58.0,
+      "predicted": 54.13,
+      "error": -3.87,
+      "date": "2024-01-01T07:45:00Z",
+      "station": "Anand Vihar, Delhi"
+    },
+    {
+      "index": 3,
+      "observed": 51.3,
+      "predicted": 56.04,
+      "error": 4.74,
+      "date": "2024-01-01T07:45:00Z",
+      "station": "Punjabi Bagh, Delhi"
+    },
+    {
+      "index": 4,
+      "observed": 43.0,
+      "predicted": 56.6,
+      "error": 13.6,
+      "date": "2024-01-01T07:45:00Z",
+      "station": "Mandir Marg, Delhi"
+    },
+    {
+      "index": 5,
+      "observed": 40.2,
+      "predicted": 58.29,
+      "error": 18.09,
+      "date": "2024-01-01T07:45:00Z",
+      "station": "IGI Airport (T3), Delhi"
+    },
+    {
+      "index": 6,
+      "observed": 51.2,
+      "predicted": 58.29,
+      "error": 7.09,
+      "date": "2024-01-01T07:45:00Z",
+      "station": "R K Puram, Delhi"
+    },
+    {
+      "index": 7,
+      "observed": 42.8,
+      "predicted": 54.15,
+      "error": 11.35,
+      "date": "2024-01-01T07:45:00Z",
+      "station": "Lodhi Road, Delhi"
+    },
+    {
+      "index": 8,
+      "observed": 61.0,
+      "predicted": 54.15,
+      "error": -6.85,
+      "date": "2024-01-01T07:45:00Z",
+      "station": "Sector 62, Noida"
+    },
+    {
+      "index": 9,
+      "observed": 48.0,
+      "predicted": 58.29,
+      "error": 10.29,
+      "date": "2024-01-01T07:45:00Z",
+      "station": "Sector 51, Gurugram"
+    },
+    {
+      "index": 10,
+      "observed": 111.4,
+      "predicted": 54.13,
+      "error": -57.27,
+      "date": "2023-12-01T07:45:00Z",
+      "station": "Anand Vihar, Delhi"
+    },
+    {
+      "index": 11,
+      "observed": 112.8,
+      "predicted": 56.04,
+      "error": -56.76,
+      "date": "2023-12-01T07:45:00Z",
+      "station": "Punjabi Bagh, Delhi"
+    },
+    {
+      "index": 12,
+      "observed": 105.8,
+      "predicted": 56.6,
+      "error": -49.2,
+      "date": "2023-12-01T07:45:00Z",
+      "station": "Mandir Marg, Delhi"
+    },
+    {
+      "index": 13,
+      "observed": 94.1,
+      "predicted": 58.29,
+      "error": -35.81,
+      "date": "2023-12-01T07:45:00Z",
+      "station": "IGI Airport (T3), Delhi"
+    },
+    {
+      "index": 14,
+      "observed": 116.2,
+      "predicted": 54.15,
+      "error": -62.05,
+      "date": "2023-12-01T07:45:00Z",
+      "station": "Lodhi Road, Delhi"
+    },
+    {
+      "index": 15,
+      "observed": 117.9,
+      "predicted": 54.13,
+      "error": -63.77,
+      "date": "2023-12-01T07:45:00Z",
+      "station": "Bawana Industrial Area, Delhi"
+    },
+    {
+      "index": 16,
+      "observed": 93.0,
+      "predicted": 56.04,
+      "error": -36.96,
+      "date": "2023-12-01T07:45:00Z",
+      "station": "Okhla Phase-2, Delhi"
+    },
+    {
+      "index": 17,
+      "observed": 81.0,
+      "predicted": 54.15,
+      "error": -26.85,
+      "date": "2023-12-01T07:45:00Z",
+      "station": "Sector 62, Noida"
+    },
+    {
+      "index": 18,
+      "observed": 83.4,
+      "predicted": 58.29,
+      "error": -25.11,
+      "date": "2023-12-01T07:45:00Z",
+      "station": "Sector 51, Gurugram"
+    },
+    {
+      "index": 19,
+      "observed": 82.5,
+      "predicted": 56.6,
+      "error": -25.9,
+      "date": "2023-12-01T07:45:00Z",
+      "station": "Sanjay Nagar, Ghaziabad"
+    },
+    {
+      "index": 20,
+      "observed": 79.1,
+      "predicted": 54.13,
+      "error": -24.97,
+      "date": "2023-12-01T07:45:00Z",
+      "station": "Sector 16A, Faridabad"
+    },
+    {
+      "index": 21,
+      "observed": 108.4,
+      "predicted": 54.15,
+      "error": -54.25,
+      "date": "2023-12-01T07:45:00Z",
+      "station": "Rohini Sector 16, Delhi"
+    },
+    {
+      "index": 22,
+      "observed": 38.3,
+      "predicted": 54.13,
+      "error": 15.83,
+      "date": "2023-12-01T07:45:00Z",
+      "station": "Bandra Kurla Complex (BKC), Mumbai"
+    },
+    {
+      "index": 23,
+      "observed": 47.0,
+      "predicted": 56.6,
+      "error": 9.6,
+      "date": "2023-12-01T07:45:00Z",
+      "station": "Colaba Coastal, Mumbai"
+    },
+    {
+      "index": 24,
+      "observed": 14.6,
+      "predicted": 54.13,
+      "error": 39.53,
+      "date": "2023-12-01T07:45:00Z",
+      "station": "Punjab Agricultural University, Ludhiana"
+    },
+    {
+      "index": 25,
+      "observed": 16.9,
+      "predicted": 54.13,
+      "error": 37.23,
+      "date": "2023-12-01T07:45:00Z",
+      "station": "BTM Layout, Bengaluru"
+    },
+    {
+      "index": 26,
+      "observed": 35.7,
+      "predicted": 56.04,
+      "error": 20.34,
+      "date": "2023-12-01T07:45:00Z",
+      "station": "Talkatora District Industries Center, Lucknow"
+    },
+    {
+      "index": 27,
+      "observed": 32.5,
+      "predicted": 56.6,
+      "error": 24.1,
+      "date": "2023-12-01T07:45:00Z",
+      "station": "Gomti Nagar, Lucknow"
+    },
+    {
+      "index": 28,
+      "observed": 36.5,
+      "predicted": 54.15,
+      "error": 17.65,
+      "date": "2023-12-01T07:45:00Z",
+      "station": "Adarsh Nagar, Jaipur"
+    },
+    {
+      "index": 29,
+      "observed": 19.4,
+      "predicted": 58.29,
+      "error": 38.89,
+      "date": "2023-12-01T07:45:00Z",
+      "station": "Maninagar, Ahmedabad"
+    },
+    {
+      "index": 30,
+      "observed": 28.3,
+      "predicted": 56.04,
+      "error": 27.74,
+      "date": "2023-12-01T07:45:00Z",
+      "station": "Sanathnagar, Hyderabad"
+    },
+    {
+      "index": 31,
+      "observed": 14.5,
+      "predicted": 58.29,
+      "error": 43.79,
+      "date": "2023-12-01T07:45:00Z",
+      "station": "Alandur Bus Depot, Chennai"
+    },
+    {
+      "index": 32,
+      "observed": 35.1,
+      "predicted": 56.04,
+      "error": 20.94,
+      "date": "2023-12-01T07:45:00Z",
+      "station": "Shivajinagar, Pune"
+    },
+    {
+      "index": 33,
+      "observed": 28.9,
+      "predicted": 56.04,
+      "error": 27.14,
+      "date": "2023-12-01T07:45:00Z",
+      "station": "Sector 22, Chandigarh"
+    },
+    {
+      "index": 34,
+      "observed": 15.0,
+      "predicted": 56.6,
+      "error": 41.6,
+      "date": "2023-12-01T07:45:00Z",
+      "station": "TT Nagar, Bhopal"
+    },
+    {
+      "index": 35,
+      "observed": 20.7,
+      "predicted": 54.15,
+      "error": 33.45,
+      "date": "2023-12-01T07:45:00Z",
+      "station": "Clock Tower, Dehradun"
+    },
+    {
+      "index": 36,
+      "observed": 31.1,
+      "predicted": 54.15,
+      "error": 23.05,
+      "date": "2023-12-01T07:45:00Z",
+      "station": "Golden Temple, Amritsar"
+    },
+    {
+      "index": 37,
+      "observed": 22.7,
+      "predicted": 58.29,
+      "error": 35.59,
+      "date": "2023-12-01T07:45:00Z",
+      "station": "Civil Hospital, Jalandhar"
+    }
+  ],
+  "residual_distribution": {
+    "mean_residual": -0.03,
+    "std_residual": 32.79,
+    "histogram": [
+      {
+        "bin_range": "-63.8 to -54.8",
+        "bin_center": -59.3,
+        "count": 4
+      },
+      {
+        "bin_range": "-54.8 to -45.8",
+        "bin_center": -50.3,
+        "count": 2
+      },
+      {
+        "bin_range": "-45.8 to -36.9",
+        "bin_center": -41.4,
+        "count": 1
+      },
+      {
+        "bin_range": "-36.9 to -27.9",
+        "bin_center": -32.4,
+        "count": 1
+      },
+      {
+        "bin_range": "-27.9 to -19.0",
+        "bin_center": -23.4,
+        "count": 4
+      },
+      {
+        "bin_range": "-19.0 to -10.0",
+        "bin_center": -14.5,
+        "count": 0
+      },
+      {
+        "bin_range": "-10.0 to -1.0",
+        "bin_center": -5.5,
+        "count": 3
+      },
+      {
+        "bin_range": "-1.0 to 7.9",
+        "bin_center": 3.5,
+        "count": 2
+      },
+      {
+        "bin_range": "7.9 to 16.9",
+        "bin_center": 12.4,
+        "count": 6
+      },
+      {
+        "bin_range": "16.9 to 25.9",
+        "bin_center": 21.4,
+        "count": 6
+      },
+      {
+        "bin_range": "25.9 to 34.8",
+        "bin_center": 30.3,
+        "count": 3
+      },
+      {
+        "bin_range": "34.8 to 43.8",
+        "bin_center": 39.3,
+        "count": 6
+      }
+    ]
+  },
+  "is_demo": false,
+  "is_active": true
+}

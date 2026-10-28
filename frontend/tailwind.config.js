@@ -1,8 +1,19 @@
+import path from 'path';
+import { fileURLToPath } from 'url';
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+const baseDir = __dirname.replace(/\\/g, '/');
+
 /** @type {import('tailwindcss').Config} */
 export default {
   content: [
+    `${baseDir}/index.html`,
+    `${baseDir}/src/**/*.{js,ts,jsx,tsx}`,
     "./index.html",
     "./src/**/*.{js,ts,jsx,tsx}",
+    "./frontend/index.html",
+    "./frontend/src/**/*.{js,ts,jsx,tsx}",
   ],
   darkMode: 'class',
   theme: {

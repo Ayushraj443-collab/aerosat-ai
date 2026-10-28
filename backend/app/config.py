@@ -12,7 +12,8 @@ class Settings(BaseSettings):
     VERSION: str = "1.0.0"
     API_PREFIX: str = "/api"
     
-    # Environment & Demo Mode
+    # Environment & Operating Data Mode
+    DEFAULT_DATA_MODE: str = "REAL"
     DEMO_MODE: bool = True
     ENVIRONMENT: str = "development"
     

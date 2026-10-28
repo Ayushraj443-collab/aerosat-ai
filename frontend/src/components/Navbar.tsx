@@ -5,8 +5,7 @@ import {
   Compass,
   Cpu,
   BarChart3,
-  Database,
-  BookOpen
+  Database
 } from 'lucide-react';
 import type { DataMode } from '../services/types';
 
@@ -27,11 +26,10 @@ export const Navbar: React.FC<NavbarProps> = ({
 }) => {
   const navItems = [
     { id: 'overview', label: 'Overview', icon: Compass },
-    { id: 'map', label: 'Pollution Map', icon: MapPin },
-    { id: 'predict', label: 'Prediction Workspace', icon: Cpu },
+    { id: 'data', label: 'Satellite/CPCB Data', icon: Database },
+    { id: 'map', label: 'Air-Quality Map', icon: MapPin },
+    { id: 'predict', label: 'Spatial Downscaling', icon: Cpu },
     { id: 'evaluation', label: 'Model Evaluation', icon: BarChart3 },
-    { id: 'data', label: 'Data Explorer', icon: Database },
-    { id: 'research', label: 'Research & About', icon: BookOpen },
   ];
 
   return (
@@ -39,25 +37,25 @@ export const Navbar: React.FC<NavbarProps> = ({
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between h-16">
           {/* Logo & Brand */}
-          <div className="flex items-center gap-3 cursor-pointer" onClick={() => setActiveTab('overview')}>
-            <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-cyan-500 to-teal-700 flex items-center justify-center shadow-lg shadow-cyan-950/50 border border-cyan-400/30">
+          <div className="flex items-center gap-3 cursor-pointer flex-shrink-0" onClick={() => setActiveTab('overview')}>
+            <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-cyan-500 to-teal-700 flex items-center justify-center shadow-lg shadow-cyan-950/50 border border-cyan-400/30 flex-shrink-0">
               <Satellite className="w-5 h-5 text-white" />
             </div>
             <div>
               <div className="flex items-center gap-2">
                 <span className="font-bold text-base tracking-tight text-white">AeroSat-AI</span>
-                <span className="px-1.5 py-0.5 rounded text-[10px] font-mono bg-cyan-950 text-cyan-400 border border-cyan-800/60 font-semibold">
+                <span className="px-1.5 py-0.5 rounded text-[10px] font-mono bg-cyan-950 text-cyan-400 border border-cyan-800/60 font-semibold whitespace-nowrap">
                   S5P/TROPOMI
                 </span>
               </div>
-              <p className="text-[11px] text-slate-400 hidden sm:block">
+              <p className="text-[11px] text-slate-400 hidden sm:block whitespace-nowrap">
                 Spatial Air-Quality Prediction & Downscaling
               </p>
             </div>
           </div>
 
           {/* Navigation Links */}
-          <nav className="hidden md:flex items-center space-x-1">
+          <nav className="hidden md:flex items-center space-x-1 lg:space-x-1.5">
             {navItems.map((item) => {
               const Icon = item.icon;
               const isActive = activeTab === item.id;
@@ -65,13 +63,13 @@ export const Navbar: React.FC<NavbarProps> = ({
                 <button
                   key={item.id}
                   onClick={() => setActiveTab(item.id)}
-                  className={`flex items-center gap-1.5 px-3 py-2 rounded-md text-xs font-medium transition-all ${
+                  className={`flex items-center gap-1.5 px-3 py-2 rounded-md text-xs font-medium transition-all whitespace-nowrap ${
                     isActive
                       ? 'bg-slate-800 text-cyan-400 border border-slate-700 shadow-sm'
                       : 'text-slate-400 hover:text-slate-200 hover:bg-slate-900/60'
                   }`}
                 >
-                  <Icon className={`w-3.5 h-3.5 ${isActive ? 'text-cyan-400' : 'text-slate-400'}`} />
+                  <Icon className={`w-3.5 h-3.5 flex-shrink-0 ${isActive ? 'text-cyan-400' : 'text-slate-400'}`} />
                   <span>{item.label}</span>
                 </button>
               );
@@ -79,7 +77,7 @@ export const Navbar: React.FC<NavbarProps> = ({
           </nav>
 
           {/* Controls: Mode Switcher & Backend Health */}
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-2.5 sm:gap-3 flex-shrink-0">
             {/* Real / Demo Mode Toggle */}
             <div className="flex items-center bg-slate-900 border border-slate-700/60 rounded-lg p-0.5 text-xs font-medium">
               <button

@@ -115,25 +115,39 @@ npm run dev
 
 ## 5. Automated Testing & Real Data Verification
 
-The backend includes a comprehensive automated test suite testing health, connectors, spatial feature extraction, GroupKFold validation, downscaling uncertainty bounds, live connector requests, authentication diagnostics, and data isolation.
+The backend includes an exhaustive automated test suite testing health, connectors, spatial feature extraction, GroupKFold cross-validation, downscaling uncertainty bounds, live connector requests, authentication diagnostics, NetCDF Level-2 parsing, spatial collocations, multi-city station resolution, date-wise data coverage, data isolation, and observation provenance.
 
 ```bash
-# Run all backend tests (31/31 passing)
+# Run all backend tests (101/101 passing, 100% pass rate)
 & .\backend\venv\Scripts\pytest.exe .\backend\tests -v
 
 # Run Copernicus OAuth Authentication Diagnostic CLI
 & .\backend\venv\Scripts\python.exe -m app.data.test_auth
 ```
 
-**Test Suite Coverage (31/31 Tests Passing):**
-- `test_health.py`: Root health, database connectivity, real vs demo record counts
-- `test_data_api.py`: Data source registry, CPCB station queries, paired observations
-- `test_real_connectors.py`: Live Copernicus CDSE OData catalogue discovery, download blocker with setup guide, Open-Meteo ERA5 & BLH, Copernicus CAMS surface air quality, OpenAQ key check, Copernicus OAuth manager diagnostics (mock & unconfigured), Sentinel-5P pixel observation retrieval, CPCB CAAQMS CSV importer, and sample Delhi dataset ingestion
-- `test_data_isolation.py`: Database partition isolation, API mode filtering (`?mode=real|demo`), prediction mode provenance, untrained pollutant error handling (no fake data), downscaled grid metadata, CSV/GeoJSON exports
-- `test_downscaler.py`: Haversine distance, single-location downscaling with uncertainty bounds, GeoJSON polygon grid generator
-- `test_ml_pipeline.py`: GroupKFold cross-validation by station, baseline IDW comparison, feature importances
-- `test_predict_api.py`: Point prediction, domain boundary validation, prediction history, CSV/GeoJSON export
-- `test_upload_validation.py`: Upload validation engine, coordinate boundaries, missing value detection
+**Verified Database Provenance (`data/satellite_aq.db` - 1,560 Real Records):**
+- **Official In-Situ Ground Monitors:** 655 authentic records (342 $\text{NO}_2$ + 313 $\text{PM}_{2.5}$ across 20 distinct CAAQMS stations in 11 Indian cities: Patna, Amritsar, Jalandhar, Ludhiana, Mumbai, Kolkata, Bengaluru, Jaipur, Lucknow, Chandigarh, Delhi-NCR).
+- **Verified Sentinel-5P–CPCB Collocations:** 9 matched pairs (OFFL L2 TROPOMI $\text{NO}_2$ column collocated within 5.5 km & overpass window with CPCB CAAQMS ground monitors).
+- **Atmospheric Model Reanalysis:** 896 records (Copernicus Atmosphere Monitoring Service surface estimates).
+- **Direct Raw Satellite Granules:** 6 OFFL L2 NetCDF granules (>3.47 GB) archived in `data/raw/sentinel5p/` across Winter and Summer seasons (manifest in `data/granule_manifest.json`).
+- **Date-Wise Data Coverage System:** REST API (`/api/data/date-coverage`) and frontend Quick-Jump Bar mapping authentic dates to truth tiers without synthetic fabrication.
+- **Synthetic Demonstration Samples:** 1,200 simulated records strictly partitioned in demo mode (`data_mode = 'DEMO'`).
+
+**Test Suite Coverage (101/101 Tests Passing):**
+- `test_date_coverage.py` (4 tests): Multi-city date-wise coverage matrix, Patna in-situ range resolution, Delhi January coverage, Level-2 NetCDF granule indexing, curated milestone dates.
+- `test_audit_verification.py` (23 tests): Scientific truth guarantees, decoupled badge classification, multi-city CAAQMS station resolution across 22 Indian hubs, PM2.5 satellite attribution integrity.
+- `test_health.py` (2 tests): Root `/` endpoint, database connectivity, real vs demo record counts.
+- `test_data_api.py` (10 tests): Connector registry, CPCB station queries, paired observations, date filters, observation provenance summary (`/api/data/provenance-summary`), observation type filtering, satellite ingestion report (`/api/data/satellite/ingestion-report`), prediction history data mode.
+- `test_data_isolation.py` (6 tests): Database partition isolation, API mode filtering (`?mode=real|demo`), prediction mode provenance, untrained pollutant error handling (no fake data), downscaled grid metadata, CSV/GeoJSON exports.
+- `test_downscaler.py` (3 tests): Haversine distance, single-location downscaling with uncertainty bounds, GeoJSON polygon grid generator with regional bounding-box pre-filtering.
+- `test_location_summary.py` (4 tests): Regional multi-city coordinate summaries, historical date handling, invalid coordinate rejection.
+- `test_ml_pipeline.py` (1 test): GroupKFold cross-validation by station, baseline IDW comparison, feature importances, median imputation.
+- `test_model_evaluation.py` (5 tests): Genuine pollutant filtering, spatial holdout zero-leakage, Bayesian Ridge baseline, data provenance fingerprint, uncertainty calibration.
+- `test_p19_verification.py` (14 tests): Idempotent dataset registration, SHA256 checksum differentiation, registry deduplication, valid observation preservation, schema validation, source provenance separation, unmatched row exclusion, spatial matching logic, NaN preservation (never zero), model metrics from actual predictions, real/demo isolation, API backwards compatibility.
+- `test_predict_api.py` (2 tests): Point prediction, domain boundary validation, prediction history, CSV/GeoJSON export.
+- `test_real_connectors.py` (12 tests): Live Copernicus CDSE OData catalogue discovery, download blocker with setup guide, Open-Meteo ERA5 & BLH, Copernicus CAMS surface air quality, OpenAQ key check, Copernicus OAuth manager diagnostics (mock & unconfigured), Sentinel-5P pixel observation retrieval, CPCB CAAQMS CSV importer, and sample Delhi dataset ingestion.
+- `test_sentinel5p_netcdf.py` (4 tests): NetCDF file validation, coordinate grid and QA mask extraction, station spatial collocations, paired observation builder without target leakage.
+- `test_upload_validation.py` (7 tests): Upload validation engine, coordinate boundaries, station name resolution, sample Delhi CSV parsing, mixed pollutant determination, duplicate handling, NO2/PM2.5 strict exclusion.
 
 ---
 
@@ -184,7 +198,51 @@ The application features two strictly separated operating modes: **REAL DATA** a
 
 ---
 
-## 9. Academic Citations
+## 10. Quick Start & Cloud Deployment
+
+### A. One-Click VS Code Run (F5)
+1. Open the project in VS Code (`code .`).
+2. Press **F5** (or click **Terminal → Run Build Task...** and choose **Run P19 AeroSat AI**).
+3. VS Code automatically starts the FastAPI backend on port 8000 and the Vite frontend on port 5173, and opens your browser.
+
+### B. Manual Startup
+* **Backend:**
+  ```bash
+  cd backend
+  python -m venv venv
+  venv\Scripts\activate
+  pip install -r requirements.txt
+  uvicorn app.main:app --host 0.0.0.0 --port 8000
+  ```
+* **Frontend:**
+  ```bash
+  cd frontend
+  npm.cmd install
+  npm.cmd run dev
+  ```
+
+### C. Cloud Deployment Guide
+
+#### 1. Backend on Render (Web Service)
+* **Root Directory:** `backend` (or root with `backend/Procfile`)
+* **Build Command:** `pip install -r requirements.txt`
+* **Start Command:** `uvicorn app.main:app --host 0.0.0.0 --port $PORT`
+* **Environment Variables:**
+  * `PYTHON_VERSION`: `3.11.9`
+  * `DEFAULT_DATA_MODE`: `REAL`
+  * `DEMO_MODE`: `false`
+
+#### 2. Frontend on Vercel
+* **Root Directory:** `frontend`
+* **Framework:** `Vite`
+* **Build Command:** `npm run build`
+* **Output Directory:** `dist`
+* **Environment Variable:**
+  * `VITE_API_URL`: `<YOUR_RENDER_BACKEND_URL>` (e.g. `https://aerosat-ai-backend.onrender.com`)
+
+---
+
+## 11. Academic Citations
 
 1. **Veefkind, J. P., et al. (2012).** *The Sentinel-5 Precursor mission and the TROPOMI instrument*. Atmospheric Measurement Techniques, 5(12), 2917-2937.
 2. **Van Donkelaar, A., et al. (2021).** *Monthly Global Estimates of Fine Particulate Matter and Their Uncertainty*. Environmental Science & Technology, 55(22), 15287-15300.

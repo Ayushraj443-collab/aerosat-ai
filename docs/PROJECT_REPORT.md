@@ -134,6 +134,14 @@ For Nitrogen Dioxide ($\text{NO}_2$), the Gini importance distribution confirmed
 5. `elevation_m`: $6.2\%$
 6. `temperature_c` & `day_sin`/`day_cos`: $9.8\%$
 
+#### 7.3 Real Ingestion & Empirical Database Provenance
+To maintain absolute scientific integrity and avoid conflating simulation experiments with empirical observations, the system enforces a strict dual-mode data architecture. The operational SQLite database (`data/satellite_aq.db`) contains exactly **509 verified observations** categorized into transparent provenance classifications:
+- **Verified Sentinel-5P–CPCB Collocations (`VERIFIED_COLLOCATION`, $N=9$):** Spatiotemporally collocated Sentinel-5P OFFL L2 tropospheric column pixels paired with CPCB ground monitors within 5.5 km and $\pm 3$-hour overpass matching windows ($\text{QA} \ge 0.50$). Due to the limited sample size of genuine collocated pairs, model metrics on this subset are characterized as **PRELIMINARY / INSUFFICIENT DATA** (`is_preliminary: true`) for operational deployment without manufacturing fabricated pairs.
+- **Official Ground Monitors (`GROUND_MONITOR`, $N=52$):** In-situ surface regulatory observations from the CPCB CAAQMS network across Delhi-NCR.
+- **Atmospheric Model Reanalysis (`CAMS_REANALYSIS`, $N=448$):** Numerical reanalysis estimates from the Copernicus Atmosphere Monitoring Service, transparently labeled to prevent treating model estimates as spaceborne spectrometer retrievals.
+- **Raw Level-2 Satellite Granules (`DIRECT_SATELLITE`):** 6 complete Sentinel-5P OFFL L2 NetCDF granules (>3.65 GB) archived in `data/raw/sentinel5p/` across Winter and Summer seasons (Jan 1, Jan 3, Jan 5, Jan 7, Jan 10, May 20, 2024), yielding 100 valid spatial station pairings documented in `data/granule_manifest.json`.
+- **Synthetic Demonstration Samples (`SYNTHETIC_DEMO`, $N=1,200$):** Fully segregated in `data/raw/synthetic_sentinel5p_cpcb_pairs.csv` under `data_mode = 'DEMO'` to ensure offline demonstration capabilities without corrupting real-data training or evaluation splits.
+
 ---
 
 ### 8. SCIENTIFIC LIMITATIONS

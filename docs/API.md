@@ -90,7 +90,105 @@ Filters paired satellite column and ground station observation records.
 - `pollutant` (optional): `NO2`, `PM2.5`, `SO2`, `CO`, `O3`
 - `date` (optional): `YYYY-MM-DD`
 - `station_id` (optional): station identifier string
+- `mode` (optional): `real` or `demo` (default: `real`)
+- `matched_only` (optional): boolean (if `true`, strictly filters for genuine collocated records with `satellite_column IS NOT NULL` and `quality_flag = 1.0`)
+- `observation_type` (optional): `VERIFIED_COLLOCATION`, `GROUND_MONITOR`, `CAMS_REANALYSIS`, `DIRECT_SATELLITE`, `SYNTHETIC_DEMO`
 - `limit` (optional): integer (default: 200, max: 1000)
+
+#### Response `200 OK`
+```json
+{
+  "total": 7,
+  "data_mode": "REAL",
+  "observations": [
+    {
+      "id": "COLLOC_S5P_DEL_ANAND_VIHAR_NO2_20240110",
+      "data_mode": "REAL",
+      "source_name": "Sentinel-5P OFFL L2 Collocation",
+      "source_product": "S5P_L2__NO2____",
+      "observation_time": "2024-01-10T08:15:22Z",
+      "station_id": "DEL_ANAND_VIHAR",
+      "station_name": "Anand Vihar, Delhi - DPCC",
+      "latitude": 28.6476,
+      "longitude": 77.3158,
+      "pollutant": "NO2",
+      "ground_value": 78.4,
+      "unit": "µg/m³",
+      "satellite_column": 12.8,
+      "satellite_qa": 0.82,
+      "observation_type": "VERIFIED_COLLOCATION",
+      "is_verified_collocation": true
+    }
+  ]
+}
+```
+
+### `GET /data/provenance-summary`
+Returns an empirical database breakdown across all 5 observation provenance types, strictly isolating verified satellite-ground collocations from ground monitors, CAMS model estimates, raw granules, and synthetic demo records.
+
+**Query Parameters:**
+- `mode` (optional): `real` or `demo` (default: `real`)
+
+#### Response `200 OK`
+```json
+{
+  "data_mode": "REAL",
+  "total_records": 507,
+  "breakdown": {
+    "verified_collocations": 7,
+    "ground_monitors": 52,
+    "cams_reanalysis": 448,
+    "direct_satellite": 0,
+    "synthetic_demo": 0
+  },
+  "provenance_rules": {
+    "verified_collocations": "Genuine Sentinel-5P OFFL L2 TROPOMI column paired with CPCB CAAQMS ground monitor within 5.5 km and matching overpass window (QA >= 0.50).",
+    "ground_monitors": "In-situ ground regulatory continuous monitoring stations from CPCB CAAQMS (surface concentration only).",
+    "cams_reanalysis": "Copernicus Atmosphere Monitoring Service atmospheric model estimates (never treated as direct satellite retrievals).",
+    "direct_satellite": "Raw spaceborne spectrometer pixel retrievals without station collocation (archived as NetCDF L2 files in data/raw/sentinel5p/).",
+    "synthetic_demo": "Calibrated physical simulation data strictly partitioned in DEMO mode (never mixed into REAL training or evaluation)."
+  }
+}
+```
+
+### `GET /data/satellite/ingestion-report`
+Provides an auditable report on the local Sentinel-5P Level-2 NetCDF archive, documented QA thresholds, physical unit conversion factors, spatial bounding boxes, and ground collocation counts.
+
+#### Response `200 OK`
+```json
+{
+  "status": "success",
+  "pipeline_name": "Sentinel-5P TROPOMI Level-2 Offline (OFFL) Ingestion Pipeline",
+  "archive_directory": "data/raw/sentinel5p",
+  "total_granules_found": 4,
+  "granules": [
+    {
+      "filename": "S5P_OFFL_L2__NO2____20240110T073000_20240110T091200_32345_03_020600_20240112T100000.nc",
+      "size_mb": 624.5,
+      "pollutant": "NO2",
+      "orbit": "32345",
+      "product_type": "OFFL_L2__NO2____"
+    }
+  ],
+  "qa_filtering": {
+    "threshold": 0.50,
+    "justification": "ESA TROPOMI Product User Manual recommendation: QA >= 0.50 removes cloud-covered scenes (cloud radiance fraction > 0.5), snow/ice contamination, and high solar zenith angle anomalies while preserving clear-sky tropospheric signals."
+  },
+  "units_and_conversions": {
+    "netcdf_native_unit": "mol/m^2",
+    "internal_feature_unit": "10^15 molec/cm^2",
+    "conversion_factor": "1 mol/m^2 = 6.02214076e19 molec/m^2 = 60221.4076 * 10^15 molec/cm^2",
+    "ground_target_unit": "µg/m³"
+  },
+  "spatial_study_region": {
+    "region_name": "Delhi-NCR",
+    "bounds": { "min_lat": 28.20, "max_lat": 28.95, "min_lon": 76.80, "max_lon": 77.55 }
+  },
+  "verified_ground_collocations_count": 7,
+  "requires_external_credentials_for_live_download": true,
+  "external_credentials_guide": "Add COPERNICUS_CLIENT_ID and COPERNICUS_CLIENT_SECRET to backend/.env for live Copernicus Data Space Ecosystem (CDSE) downloads."
+}
+```
 
 ### `POST /data/upload`
 Uploads and validates an external CSV or GeoJSON dataset.

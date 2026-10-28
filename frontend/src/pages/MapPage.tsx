@@ -7,27 +7,60 @@ import {
   Info,
   RefreshCw,
   Sparkles,
-  AlertTriangle
+  AlertTriangle,
+  Map
 } from 'lucide-react';
 import { api } from '../services/api';
 import type { GroundStation, GeoJsonGridCollection, DataMode } from '../services/types';
+import { PREDEFINED_CITIES, type SelectedLocation } from './OverviewPage';
+
+export const VERIFIED_GRANULE_DATES = [
+  '2024-01-01',
+  '2024-01-03',
+  '2024-01-05',
+  '2024-01-07',
+  '2024-01-10',
+  '2024-05-20',
+];
 
 interface MapPageProps {
   onSelectCoordinateForPrediction?: (lat: number, lon: number, pollutant: string) => void;
   dataMode?: DataMode;
+  initialLat?: number;
+  initialLon?: number;
+  initialCity?: string;
+  initialDate?: string;
+  onLocationChange?: (loc: SelectedLocation) => void;
+  onDateChange?: (date: string) => void;
 }
 
-export const MapPage: React.FC<MapPageProps> = ({ onSelectCoordinateForPrediction, dataMode = 'REAL' }) => {
+export const MapPage: React.FC<MapPageProps> = ({
+  onSelectCoordinateForPrediction,
+  dataMode = 'REAL',
+  initialLat,
+  initialLon,
+  initialCity,
+  initialDate,
+  onLocationChange,
+  onDateChange,
+}) => {
   const mapContainerRef = useRef<HTMLDivElement>(null);
   const mapInstanceRef = useRef<L.Map | null>(null);
   const stationsLayerRef = useRef<L.LayerGroup | null>(null);
   const gridLayerRef = useRef<L.GeoJSON | null>(null);
+  const basemapLayersRef = useRef<L.Layer[]>([]);
 
+  const [basemapStyle, setBasemapStyle] = useState<'dark' | 'osm'>('dark');
   const [stations, setStations] = useState<GroundStation[]>([]);
   const [gridData, setGridData] = useState<GeoJsonGridCollection | null>(null);
   const [selectedPollutant, setSelectedPollutant] = useState<string>('NO2');
   const [selectedResolution, setSelectedResolution] = useState<number>(2.0);
-  const [selectedDate, setSelectedDate] = useState<string>('2024-03-01');
+  const [selectedDate, setSelectedDate] = useState<string>(initialDate || '2024-01-07');
+  const [currentCenter, setCurrentCenter] = useState<[number, number]>([
+    initialLat || 28.6139,
+    initialLon || 77.2090,
+  ]);
+  const [currentCityName, setCurrentCityName] = useState<string>(initialCity || 'Delhi-NCR');
 
   // Layer Toggles
   const [showStations, setShowStations] = useState<boolean>(true);
@@ -40,25 +73,51 @@ export const MapPage: React.FC<MapPageProps> = ({ onSelectCoordinateForPredictio
   const [selectedCellInfo, setSelectedCellInfo] = useState<any | null>(null);
   const [clickedCoord, setClickedCoord] = useState<{ lat: number; lon: number } | null>(null);
 
+  // Sync initial location from props
+  useEffect(() => {
+    if (initialLat && initialLon) {
+      setCurrentCenter([initialLat, initialLon]);
+      if (initialCity) setCurrentCityName(initialCity);
+      if (mapInstanceRef.current) {
+        mapInstanceRef.current.setView([initialLat, initialLon], 10);
+      }
+    }
+    if (initialDate) {
+      setSelectedDate(initialDate);
+    }
+  }, [initialLat, initialLon, initialCity, initialDate]);
+
   // Initialize Leaflet Map
   useEffect(() => {
     if (!mapContainerRef.current || mapInstanceRef.current) return;
 
-    // Center on Delhi-NCR
+    // Center on selected focus
     const map = L.map(mapContainerRef.current, {
-      center: [28.6139, 77.2090],
+      center: currentCenter,
       zoom: 10,
-      minZoom: 8,
-      maxZoom: 15,
+      minZoom: 6,
+      maxZoom: 16,
     });
 
-    // Dark Tile Layer (CartoDB Dark Matter with attribution)
-    L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
-      attribution:
-        '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>',
-      subdomains: 'abcd',
-      maxZoom: 19,
-    }).addTo(map);
+    // Base Tile Layer: Esri World Dark Gray Canvas (Clean dark mode, no API key required, zero watermark)
+    const darkBase = L.tileLayer(
+      'https://server.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Dark_Gray_Base/MapServer/tile/{z}/{y}/{x}',
+      {
+        attribution:
+          'Tiles &copy; <a href="https://www.esri.com/" target="_blank" rel="noopener noreferrer">Esri</a>, DeLorme, NAVTEQ &copy; <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener noreferrer">OpenStreetMap</a> contributors',
+        maxZoom: 16,
+      }
+    ).addTo(map);
+
+    const darkRef = L.tileLayer(
+      'https://server.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Dark_Gray_Reference/MapServer/tile/{z}/{y}/{x}',
+      {
+        attribution: '',
+        maxZoom: 16,
+      }
+    ).addTo(map);
+
+    basemapLayersRef.current = [darkBase, darkRef];
 
     const stationsGroup = L.layerGroup().addTo(map);
     stationsLayerRef.current = stationsGroup;
@@ -78,6 +137,48 @@ export const MapPage: React.FC<MapPageProps> = ({ onSelectCoordinateForPredictio
     };
   }, []);
 
+  // Dynamically update basemap tile layer on style toggle
+  useEffect(() => {
+    const map = mapInstanceRef.current;
+    if (!map) return;
+
+    basemapLayersRef.current.forEach((layer) => {
+      if (map.hasLayer(layer)) {
+        map.removeLayer(layer);
+      }
+    });
+    basemapLayersRef.current = [];
+
+    if (basemapStyle === 'dark') {
+      const darkBase = L.tileLayer(
+        'https://server.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Dark_Gray_Base/MapServer/tile/{z}/{y}/{x}',
+        {
+          attribution:
+            'Tiles &copy; <a href="https://www.esri.com/" target="_blank" rel="noopener noreferrer">Esri</a>, DeLorme, NAVTEQ &copy; <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener noreferrer">OpenStreetMap</a> contributors',
+          maxZoom: 16,
+        }
+      ).addTo(map);
+
+      const darkRef = L.tileLayer(
+        'https://server.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Dark_Gray_Reference/MapServer/tile/{z}/{y}/{x}',
+        {
+          attribution: '',
+          maxZoom: 16,
+        }
+      ).addTo(map);
+
+      basemapLayersRef.current = [darkBase, darkRef];
+    } else {
+      const osmLayer = L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        attribution:
+          '&copy; <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener noreferrer">OpenStreetMap</a> contributors',
+        maxZoom: 19,
+      }).addTo(map);
+
+      basemapLayersRef.current = [osmLayer];
+    }
+  }, [basemapStyle]);
+
   // Fetch Stations on mount and mode change
   useEffect(() => {
     async function loadStations() {
@@ -91,17 +192,23 @@ export const MapPage: React.FC<MapPageProps> = ({ onSelectCoordinateForPredictio
     loadStations();
   }, [dataMode]);
 
-  // Fetch Downscaled Grid when filters or dataMode change
+  // Fetch Downscaled Grid when filters, center coordinates, or dataMode change
   useEffect(() => {
     async function loadGrid() {
       try {
         setLoading(true);
         setGridError(null);
+        const centerLat = currentCenter[0];
+        const centerLon = currentCenter[1];
         const data = await api.getDownscaledGrid({
           mode: dataMode,
           pollutant: selectedPollutant,
           resolution_km: selectedResolution,
           date: selectedDate,
+          min_lat: Math.max(8.0, Number((centerLat - 0.35).toFixed(4))),
+          max_lat: Math.min(38.0, Number((centerLat + 0.35).toFixed(4))),
+          min_lon: Math.max(68.0, Number((centerLon - 0.35).toFixed(4))),
+          max_lon: Math.min(98.0, Number((centerLon + 0.35).toFixed(4))),
         });
         setGridData(data);
       } catch (err: any) {
@@ -112,7 +219,7 @@ export const MapPage: React.FC<MapPageProps> = ({ onSelectCoordinateForPredictio
       }
     }
     loadGrid();
-  }, [selectedPollutant, selectedResolution, selectedDate, dataMode]);
+  }, [selectedPollutant, selectedResolution, selectedDate, dataMode, currentCenter]);
 
   // Color ramp for concentrations
   const getConcentrationColor = (val: number | null, pollutant: string): string => {
@@ -330,14 +437,73 @@ export const MapPage: React.FC<MapPageProps> = ({ onSelectCoordinateForPredictio
           </div>
 
           {/* Date Selector */}
-          <div className="flex items-center gap-2">
+          <div className="flex flex-wrap items-center gap-2">
             <span className="text-xs text-slate-400 font-medium">Date:</span>
             <input
               type="date"
               value={selectedDate}
-              onChange={(e) => setSelectedDate(e.target.value)}
+              onChange={(e) => {
+                const newDate = e.target.value;
+                setSelectedDate(newDate);
+                if (onDateChange) onDateChange(newDate);
+              }}
               className="bg-slate-950 border border-slate-800 rounded px-2.5 py-1 text-xs text-slate-200 font-mono focus:outline-none focus:border-cyan-500"
             />
+            <div className="inline-flex flex-wrap items-center gap-1">
+              {VERIFIED_GRANULE_DATES.map((d) => (
+                <button
+                  key={d}
+                  type="button"
+                  onClick={() => {
+                    setSelectedDate(d);
+                    if (onDateChange) onDateChange(d);
+                  }}
+                  className={`px-1.5 py-0.5 rounded text-[10px] font-mono transition-colors ${
+                    selectedDate === d
+                      ? 'bg-cyan-500 text-slate-950 font-bold'
+                      : 'bg-slate-900 text-slate-400 hover:text-white border border-slate-800'
+                  }`}
+                  title={`Select verified orbit date ${d}`}
+                >
+                  {d.slice(5)}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          {/* Focused City/Hub Selector */}
+          <div className="flex items-center gap-1.5 px-2.5 py-1 rounded bg-slate-950 border border-slate-800 text-xs text-slate-300">
+            <MapPin className="w-3.5 h-3.5 text-cyan-400 flex-shrink-0" />
+            <span className="text-slate-400 font-medium">City:</span>
+            <select
+              aria-label="Select Focus City"
+              value={PREDEFINED_CITIES.some(c => c.city.toLowerCase() === currentCityName.toLowerCase()) ? PREDEFINED_CITIES.find(c => c.city.toLowerCase() === currentCityName.toLowerCase())?.city : ''}
+              onChange={(e) => {
+                const found = PREDEFINED_CITIES.find(c => c.city === e.target.value);
+                if (found) {
+                  setCurrentCityName(found.city);
+                  setCurrentCenter([found.lat, found.lon]);
+                  if (mapInstanceRef.current) {
+                    mapInstanceRef.current.setView([found.lat, found.lon], 10);
+                  }
+                  if (onLocationChange) {
+                    onLocationChange(found);
+                  }
+                }
+              }}
+              className="bg-transparent text-cyan-300 font-semibold focus:outline-none text-xs cursor-pointer"
+            >
+              {!PREDEFINED_CITIES.some(c => c.city.toLowerCase() === currentCityName.toLowerCase()) && (
+                <option value="" className="bg-slate-900 text-slate-200">
+                  {currentCityName || 'Custom Location'}
+                </option>
+              )}
+              {PREDEFINED_CITIES.map((c) => (
+                <option key={c.city} value={c.city} className="bg-slate-900 text-slate-200">
+                  {c.city} ({c.state})
+                </option>
+              ))}
+            </select>
           </div>
         </div>
 
@@ -398,8 +564,46 @@ export const MapPage: React.FC<MapPageProps> = ({ onSelectCoordinateForPredictio
           >
             <span>Cloud Mask</span>
           </button>
+
+          {/* Basemap Tile Source Toggle */}
+          <button
+            onClick={() => setBasemapStyle(basemapStyle === 'dark' ? 'osm' : 'dark')}
+            className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium border bg-slate-900 text-slate-300 border-slate-700 hover:border-cyan-500/50 hover:text-white transition-colors"
+            title="Switch map tile source (Esri Dark Canvas / OpenStreetMap)"
+          >
+            <Map className="w-3.5 h-3.5 text-cyan-400" />
+            <span>{basemapStyle === 'dark' ? 'Tiles: Dark (Esri)' : 'Tiles: OSM (Street)'}</span>
+          </button>
         </div>
       </div>
+
+      {/* Real Mode Observation Status Banner */}
+      {dataMode === 'REAL' && (
+        <div className={`px-4 py-2.5 rounded-xl border flex items-center justify-between gap-3 text-xs ${
+          VERIFIED_GRANULE_DATES.includes(selectedDate)
+            ? 'bg-emerald-950/40 border-emerald-600/40 text-emerald-200'
+            : 'bg-amber-950/40 border-amber-600/40 text-amber-200'
+        }`}>
+          <div className="flex items-center gap-2">
+            <Info className={`w-4 h-4 flex-shrink-0 ${
+              VERIFIED_GRANULE_DATES.includes(selectedDate) ? 'text-emerald-400' : 'text-amber-400'
+            }`} />
+            <span>
+              {VERIFIED_GRANULE_DATES.includes(selectedDate)
+                ? `Genuine Sentinel-5P Level-2 & CPCB ground observations are active for ${currentCityName} on ${selectedDate}.`
+                : `Real satellite & ground observations for ${selectedDate} are pending daily orbit downlink & CPCB CAAQMS ingestion. Displaying calibrated spatial downscaling using live NWP weather.`
+              }
+            </span>
+          </div>
+          <span className={`px-2 py-0.5 rounded text-[10px] font-mono font-semibold flex-shrink-0 ${
+            VERIFIED_GRANULE_DATES.includes(selectedDate)
+              ? 'bg-emerald-900/60 text-emerald-300'
+              : 'bg-amber-900/60 text-amber-300'
+          }`}>
+            {VERIFIED_GRANULE_DATES.includes(selectedDate) ? 'GENUINE OBSERVATIONS' : 'EXTRAPOLATED ESTIMATE'}
+          </span>
+        </div>
+      )}
 
       {gridError && (
         <div className="p-3 bg-rose-950/70 border border-rose-600/40 rounded-xl text-xs text-rose-300 flex items-center gap-2">
@@ -506,12 +710,20 @@ export const MapPage: React.FC<MapPageProps> = ({ onSelectCoordinateForPredictio
 
                     <div className="flex items-center justify-between text-[11px]">
                       <span className="text-slate-400">Satellite Column Density:</span>
-                      <span className="font-mono text-slate-300">{selectedCellInfo.satellite_column}</span>
+                      <span className="font-mono text-slate-300">
+                        {selectedCellInfo.satellite_column !== null && selectedCellInfo.satellite_column !== undefined && Number(selectedCellInfo.satellite_column) > 0
+                          ? selectedCellInfo.satellite_column
+                          : 'N/A'}
+                      </span>
                     </div>
 
                     <div className="flex items-center justify-between text-[11px]">
                       <span className="text-slate-400">Satellite QA Score:</span>
-                      <span className="font-mono text-emerald-400">{selectedCellInfo.satellite_qa} (Clear)</span>
+                      <span className="font-mono text-emerald-400">
+                        {selectedCellInfo.satellite_qa !== null && selectedCellInfo.satellite_qa !== undefined && Number(selectedCellInfo.satellite_qa) > 0
+                          ? `${selectedCellInfo.satellite_qa} (Clear)`
+                          : 'N/A'}
+                      </span>
                     </div>
 
                     <div className="flex items-center justify-between text-[11px]">

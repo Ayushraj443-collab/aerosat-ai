@@ -1,38 +1,73 @@
-# Python
+# =====================================================================
+# AeroSat-AI Production & Submission .gitignore
+# =====================================================================
+
+# Python Environment & Caches
+backend/venv/
+venv/
+ENV/
+env/
 __pycache__/
 *.py[cod]
 *$py.class
-backend/venv/
+*.pyd
 .pytest_cache/
-*.joblib
-*.pkl
+.coverage
+htmlcov/
 
-# Node / Frontend
+# Node.js & Frontend Build Artifacts
 frontend/node_modules/
+node_modules/
 frontend/dist/
+dist/
+.vite/
 frontend/.vite/
-frontend/package-lock.json
+*.tsbuildinfo
 
-# Environment & Credentials
+# Security & Credentials
 .env
-*.env
-!.env.example
-secrets/
+.env.local
+.env.*.local
+backend/.env
+frontend/.env.local
 *.pem
 *.key
 
-# Data & SQLite artifacts
-data/*.db
-data/*.sqlite3
-data/models/*.joblib
-!data/models/.gitkeep
-data/raw/*.csv
-data/processed/
+# Backups & Archives
+*.bak
+*.bak2
+*.zip
+*.backup*
+data/*.backup*
+data/satellite_aq.db.backup*
 
-# OS / IDE
+# Temporary test uploads
+data/raw/ds_*
+data/aerosat.db
+backend/aerosat.db
+
+# Large Satellite Files (>100MB GitHub Hard Limit)
+data/raw/sentinel5p/*.nc
+data/raw/sentinel5p/*.nc4
+data/raw/sentinel5p/*.he5
+data/raw/sentinel5p/*.hdf
+data/raw/cpcb-aqi.csv.gz
+*.tar.gz
+*.gz
+!data/raw/sentinel5p/.gitkeep
+
+# Exclude temporary scratch tests/downloads
+scratch/
+
+# Preserve essential database & operational models
+!data/satellite_aq.db
+!data/models/*.joblib
+!data/models/*.json
+
+# IDE Settings
+.vscode/*
+!.vscode/tasks.json
+!.vscode/launch.json
+.idea/
 .DS_Store
 Thumbs.db
-.vscode/
-.idea/
-scratch/
-data/models/*.json

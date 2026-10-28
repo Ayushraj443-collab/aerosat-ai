@@ -12,10 +12,17 @@ import type {
   Sentinel5PQueryRequest,
   Sentinel5PQueryResponse,
   CopernicusAuthTestResponse,
-  DataMode
+  DataMode,
+  LocationSummaryRequest,
+  LocationSummaryResponse,
+  ObservationProvenanceSummaryResponse,
+  PredictionHistoryItem,
+  DateCoverageResponse
 } from './types';
 
-const API_BASE = '/api';
+const API_BASE = import.meta.env.VITE_API_URL 
+  ? `${import.meta.env.VITE_API_URL.replace(/\/$/, '')}/api` 
+  : '/api';
 
 async function handleResponse<T>(res: Response): Promise<T> {
   if (!res.ok) {
@@ -109,6 +116,8 @@ export const api = {
     date?: string;
     pollutant?: string;
     station_id?: string;
+    observation_type?: string;
+    matched_only?: boolean;
     limit?: number;
   }): Promise<ObservationRecord[]> {
     const query = new URLSearchParams();
@@ -116,8 +125,21 @@ export const api = {
     if (params.date) query.set('date', params.date);
     if (params.pollutant) query.set('pollutant', params.pollutant);
     if (params.station_id) query.set('station_id', params.station_id);
+    if (params.observation_type) query.set('observation_type', params.observation_type);
+    if (params.matched_only !== undefined) query.set('matched_only', params.matched_only.toString());
     if (params.limit) query.set('limit', params.limit.toString());
     const res = await fetch(`${API_BASE}/data/observations?${query.toString()}`);
+    return handleResponse(res);
+  },
+
+  async getProvenanceSummary(mode?: DataMode): Promise<ObservationProvenanceSummaryResponse> {
+    const q = mode ? `?mode=${mode.toLowerCase()}` : '';
+    const res = await fetch(`${API_BASE}/data/provenance-summary${q}`);
+    return handleResponse(res);
+  },
+
+  async getSatelliteIngestionReport(): Promise<any> {
+    const res = await fetch(`${API_BASE}/data/satellite/ingestion-report`);
     return handleResponse(res);
   },
 
@@ -175,7 +197,12 @@ export const api = {
     return handleResponse(res);
   },
 
-  async getPredictionHistory(limit: number = 20, mode?: DataMode): Promise<any[]> {
+  async getPredictionDetail(id: string): Promise<PredictionResponse> {
+    const res = await fetch(`${API_BASE}/predictions/${id}`);
+    return handleResponse(res);
+  },
+
+  async getPredictionHistory(limit: number = 20, mode?: DataMode): Promise<PredictionHistoryItem[]> {
     const query = new URLSearchParams();
     query.set('limit', limit.toString());
     if (mode) query.set('mode', mode.toLowerCase());
@@ -190,8 +217,20 @@ export const api = {
     return handleResponse(res);
   },
 
-  async getModelMetrics(pollutant: string = 'NO2', mode: DataMode = 'DEMO'): Promise<ModelMetricsResponse> {
-    const res = await fetch(`${API_BASE}/model/metrics?pollutant=${pollutant}&mode=${mode.toLowerCase()}`);
+  async getModelMetrics(pollutant: string = 'NO2', mode: DataMode = 'DEMO', reEvaluate: boolean = false): Promise<ModelMetricsResponse> {
+    const reParam = reEvaluate ? '&re_evaluate=true' : '';
+    const res = await fetch(`${API_BASE}/model/metrics?pollutant=${pollutant}&mode=${mode.toLowerCase()}${reParam}`);
+    return handleResponse(res);
+  },
+
+  async reEvaluateModel(pollutant: string = 'NO2', mode: DataMode = 'REAL', algorithm?: string): Promise<ModelMetricsResponse> {
+    const query = new URLSearchParams();
+    query.set('pollutant', pollutant);
+    query.set('data_mode', mode);
+    if (algorithm) query.set('algorithm', algorithm);
+    const res = await fetch(`${API_BASE}/model/re-evaluate?${query.toString()}`, {
+      method: 'POST',
+    });
     return handleResponse(res);
   },
 
@@ -217,4 +256,31 @@ export const api = {
     });
     return handleResponse(res);
   },
+
+  // Location Summary
+  async getLocationSummary(req: LocationSummaryRequest): Promise<LocationSummaryResponse> {
+    const res = await fetch(`${API_BASE}/data/location-summary`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(req),
+    });
+    return handleResponse(res);
+  },
+
+  // Date-Wise Coverage & Verification Matrix
+  async getDateCoverage(params?: {
+    cityName?: string;
+    latitude?: number;
+    longitude?: number;
+    dataMode?: DataMode;
+  }): Promise<DateCoverageResponse> {
+    const query = new URLSearchParams();
+    if (params?.cityName) query.append('city_name', params.cityName);
+    if (params?.latitude !== undefined) query.append('latitude', params.latitude.toString());
+    if (params?.longitude !== undefined) query.append('longitude', params.longitude.toString());
+    if (params?.dataMode) query.append('data_mode', params.dataMode);
+    const res = await fetch(`${API_BASE}/data/date-coverage?${query.toString()}`);
+    return handleResponse(res);
+  },
 };
+
